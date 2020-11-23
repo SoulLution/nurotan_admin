@@ -1,0 +1,78 @@
+<template>
+  <label class="cursor-pointer flex flex-row items-center">
+    <input type="radio" :checked="checked" @click="changeData" />
+    <span class="opacity-60">{{ title }}</span>
+  </label>
+</template>
+
+<script>
+export default {
+  props: {
+    title: {
+      type: String,
+      default: ""
+    },
+    value: {
+      type: Boolean,
+      default: false
+    },
+    checked: {
+      type: Boolean,
+      default: false
+    }
+  },
+  methods: {
+    changeData(e) {
+      if (e) this.$emit("change", this.value)
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+input {
+  height: 0;
+  width: 0;
+  overflow: visible;
+  position: relative;
+  margin-right: 32px;
+  &:before,
+  &::after {
+    content: "";
+    position: absolute;
+    max-width: 29px;
+    max-height: 29px;
+    min-width: 29px;
+    min-height: 29px;
+    border-radius: 50%;
+    transform: translateY(-40%);
+  }
+  &:after {
+    opacity: 0.2;
+    border: 1px solid #0066ff;
+    background-image: url("/radio.svg");
+    background-repeat: no-repeat;
+    background-position: 50%;
+  }
+  &::before {
+    background-color: #ffffff;
+    box-shadow: inset 0px 0px 0px 0px #f9db3d;
+    transition: 0.3s;
+  }
+  &:hover {
+    &:after {
+      opacity: 0.5;
+      border-color: #f9db3d;
+    }
+  }
+  &:checked {
+    &:after {
+      opacity: 1;
+      border-color: #f9db3d;
+    }
+    &::before {
+      box-shadow: inset 0px 0px 0px 15px #f9db3d;
+    }
+  }
+}
+</style>
