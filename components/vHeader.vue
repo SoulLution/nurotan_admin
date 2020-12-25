@@ -4,9 +4,16 @@
       <img src="nur_otan.png" />
     </router-link>
     <nav class="flex flex-row items-center">
-      <router-link class="px-4 py-8" to="/">Конструктор диалогов</router-link>
-      <router-link class="px-4 py-8" to="/workers">Администрация</router-link>
-      <router-link class="px-4 py-8" to="/chat">Чат</router-link>
+      <router-link v-if="checkOnAdmin" class="px-4 py-8" to="/">
+        Конструктор диалогов
+      </router-link>
+      <router-link v-if="checkOnAdmin" class="px-4 py-8" to="/workers">
+        Администрация
+      </router-link>
+      <router-link class="px-4 py-8" to="/confirm">
+        Заявки
+      </router-link>
+      <router-link class="px-4 py-8" to="/dialogs">Чат</router-link>
     </nav>
     <div
       class="flex flex-row items-center relative"
@@ -14,8 +21,10 @@
       @mouseleave="menu = false"
     >
       <div class="flex flex-col justify-center">
-        <h4 class="text-h4 font-bold text-d_blue">Алексей Иванов</h4>
-        <span class="txt-l_blue">Администратор</span>
+        <h4 class="text-h4 font-bold text-d_blue">{{ user.full_name }}</h4>
+        <span class="txt-l_blue">{{
+          checkOnAdmin ? "Администратор" : "Менеджер"
+        }}</span>
       </div>
       <div
         class="ava rounded-full border-4 border-red mx-4 overflow-hidden"
@@ -27,6 +36,7 @@
         <div v-show="menu" class="settings bg-white absolute flex flex-col">
           <div
             class="py-2 px-4 cursor-pointer hover:bg-cyan hover:text-white transition duration-150 "
+            @click="signout()"
           >
             Выйти
           </div>
@@ -40,7 +50,22 @@
 export default {
   data() {
     return {
-      menu: false
+      menu: false,
+      user: JSON.parse(localStorage.getItem("auth"))
+    }
+  },
+  computed: {
+    checkOnAdmin() {
+      return this.user && this.user.is_admin == 1
+    }
+  },
+  created() {
+    if (!this.user) this.signout()
+  },
+  methods: {
+    signout() {
+      localStorage.setItem("auth", "")
+      this.$router.push("/sign")
     }
   }
 }

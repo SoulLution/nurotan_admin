@@ -8,9 +8,9 @@
 <script>
 export default {}
 </script>
-<style>
+<style scoped>
 .page {
-  overflow: hidden;
+  overflow: hidden scroll;
   height: 100vh;
   width: 100vw;
 }

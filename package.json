@@ -11,12 +11,21 @@
     "lint": "npm run lint:js"
   },
   "dependencies": {
+    "@kevinfaguiar/vue-twemoji-picker": "^5.7.4",
     "@nuxtjs/axios": "^5.12.2",
+    "@nuxtjs/moment": "^1.6.1",
     "core-js": "^3.6.5",
     "node-sass": "^5.0.0",
     "nuxt": "^2.14.6",
     "sass-loader": "^10.1.0",
-    "v-mask": "^2.2.3"
+    "tiptap": "^1.30.0",
+    "tiptap-extensions": "^1.33.2",
+    "v-emoji-picker": "^2.3.1",
+    "v-mask": "^2.2.3",
+    "vue-date-pick": "^1.4.1",
+    "vue-emoji-picker": "^1.0.1",
+    "vue-multiselect": "^2.1.6",
+    "vuejs-emoji": "^0.1.8"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config": "^3.1.0",

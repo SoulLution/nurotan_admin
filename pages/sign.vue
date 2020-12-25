@@ -7,7 +7,13 @@
           ВХОД В УЧЕТНУЮ ЗАПИСЬ
         </h2>
       </div>
-      <div class="flex flex-col pt-13">
+      <form class="flex flex-col pt-13 px" @submit.prevent="sendData()">
+        <span
+          v-if="error"
+          class="text-red text-lg font-semibold w-full text-center"
+        >
+          Неверный логин или пароль
+        </span>
         <v-input
           id="email"
           v-model="login"
@@ -38,7 +44,7 @@
             Сбросить пароль
           </span>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 </template>
@@ -49,7 +55,26 @@ export default {
   data() {
     return {
       login: "",
-      password: ""
+      password: "",
+      error: false
+    }
+  },
+  methods: {
+    sendData() {
+      this.error = false
+      this.$axios
+        .get(`/n_users/1111111111/${this.login}/${this.password}/`)
+        .then(res => {
+          if (res.data.length) {
+            localStorage.setItem("auth", JSON.stringify(res.data[0]))
+            if (res.data[0].is_admin == 1) this.$router.push("/")
+            else this.$router.push("/dialogs")
+          } else this.error = true
+        })
+        .catch(err => {
+          this.error = true
+          console.error(err)
+        })
     }
   }
 }
@@ -60,7 +85,8 @@ export default {
   & > .content {
     max-width: 822px;
     padding: 42px 0 71px;
-    & > div {
+    & > div,
+    & > form {
       padding-left: 70px;
       padding-right: 93px;
       &:first-child {

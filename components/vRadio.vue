@@ -1,7 +1,14 @@
 <template>
-  <label class="cursor-pointer flex flex-row items-center">
-    <input type="radio" :checked="checked" @click="changeData" />
-    <span class="opacity-60">{{ title }}</span>
+  <label
+    class="radio cursor-pointer flex flex-row items-start"
+    :title="title.replace(/<\/?[^>]+(>|$)/g, '')"
+  >
+    <div
+      style="min-height: 34px; min-width: 40px; max-height: 34px; max-width: 40px; overflow: visible"
+    >
+      <input type="radio" :checked="checked" @click="changeData" />
+    </div>
+    <span class="opacity-60 pt-2 truncate" v-html="title"></span>
   </label>
 </template>
 
@@ -35,17 +42,18 @@ input {
   width: 0;
   overflow: visible;
   position: relative;
-  margin-right: 32px;
   &:before,
   &::after {
     content: "";
     position: absolute;
+    top: 0;
     max-width: 29px;
     max-height: 29px;
     min-width: 29px;
     min-height: 29px;
     border-radius: 50%;
     transform: translateY(-40%);
+    cursor: pointer;
   }
   &:after {
     opacity: 0.2;
@@ -69,10 +77,21 @@ input {
     &:after {
       opacity: 1;
       border-color: #f9db3d;
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.08);
     }
     &::before {
       box-shadow: inset 0px 0px 0px 15px #f9db3d;
     }
+  }
+}
+</style>
+
+<style lang="scss">
+.radio {
+  & * {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 </style>

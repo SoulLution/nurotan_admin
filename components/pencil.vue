@@ -1,0 +1,25 @@
+<template>
+  <svg
+    class="border border-black bg-transparent border-opacity-10 rounded-5 ml-3 cursor-pointer fill-current hover:bg-cyan hover:text-white"
+    width="32"
+    height="32"
+    viewBox="0 0 32 32"
+    xmlns="http://www.w3.org/2000/svg"
+    @click="$emit('click', true)"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M10.6687 22.0001C10.7227 22.0001 10.7767 21.9934 10.8301 21.9801L13.4967 21.3134C13.6141 21.2841 13.7214 21.2234 13.8067 21.1381L22.0021 12.9427C22.2541 12.6907 22.3927 12.3561 22.3927 12.0001C22.3927 11.6441 22.2541 11.3094 22.0021 11.0574L20.9447 10.0001C20.4407 9.49607 19.5634 9.49607 19.0594 10.0001L10.8641 18.1954C10.7787 18.2807 10.7181 18.3881 10.6887 18.5047L10.0221 21.1714C9.96473 21.3987 10.0321 21.6387 10.1974 21.8047C10.3234 21.9314 10.4941 22.0001 10.6687 22.0001ZM20.0021 10.9427L21.0594 12.0001L20.0021 13.0574L18.9447 12.0001L20.0021 10.9427ZM18.0021 12.9427L11.9374 19.0074L11.5847 20.4167L12.9941 20.0647L19.0594 14.0001L18.0021 12.9427Z"
+    />
+  </svg>
+</template>
+<style lang="scss" scoped>
+svg {
+  max-width: 32px;
+  max-height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  transition: 0.1s;
+}
+</style>

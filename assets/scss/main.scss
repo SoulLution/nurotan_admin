@@ -1,6 +1,9 @@
 @import 'normalize.scss';
 @import 'colors.scss';
 
+html ,#__layout{
+  overflow: hidden;
+}
 .content{
   width: 100%;
 }
@@ -21,6 +24,75 @@
     border-radius: 50%;
     background-color: $yellow;
     box-shadow: 0px 0px 0px 5px #F9DB3D50;
+  }
+  &.cyan{
+    &:before{
+      content: "";
+      position: absolute;
+      left: 0;
+      max-width: 10px;
+      max-height: 10px;
+      min-width: 10px;
+      min-height: 10px;
+      border-radius: 50%;
+      background-color: #008FA0;
+      box-shadow: 0px 0px 0px 5px #2C5DE525;
+    }
+  }
+}
+#emoji-container > #emoji-popup #emoji-popover-search > #search-header > span > img{
+  min-width: 24px;
+}
+#emoji-popover-header, .emoji-list{
+  display: flex;
+  &>span{
+    min-width: 42px;
+    height: 50px;
+    overflow: hidden;
+  }
+}
+.emoji-list{
+  flex-wrap: wrap;
+  &>span{
+    min-width: 42px;
+    height: 42px;
+  }
+}
+.ProseMirror{
+  border-width: 0 !important;
+  outline: none;
+}
 
+
+.fade-bottom-popup-enter-active {
+  animation: bounce-in 0.3s;
+}
+.fade-bottom-popup-leave-active {
+  animation: bounce-in 0.3s reverse;
+}
+@keyframes bounce-in {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0%);
+  }
+}
+.confirm-popup-enter-active {
+  animation: bounce-scale 0.5s;
+}
+.confirm-popup-leave-active {
+  animation: bounce-scale 0.5s reverse;
+}
+
+@keyframes bounce-scale {
+  0% {
+    transform: scale(0);
+  }
+  50%{
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
   }
 }

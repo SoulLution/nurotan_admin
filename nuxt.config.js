@@ -1,4 +1,10 @@
 export default {
+  ssr: false,
+  server: {
+    port: 3000, // default: 3000
+    host: "localhost" // default: localhost
+    // host: "185.22.64.75" // default: localhost
+  },
   // Global page headers (https://go.nuxtjs.dev/config-head)
   head: {
     title: "Admin",
@@ -13,11 +19,13 @@ export default {
   // Global CSS (https://go.nuxtjs.dev/config-css)
   css: [
     { src: "~assets/scss/main.scss", lang: "scss" },
-    { src: "~assets/scss/colors.scss", lang: "scss" }
+    { src: "~assets/scss/colors.scss", lang: "scss" },
+    { src: "vue-multiselect/dist/vue-multiselect.min.css" },
+    { src: "vue-date-pick/dist/vueDatePick.css" }
   ],
 
   // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
-  plugins: [],
+  plugins: ["~/plugins/emoji-picker.js"],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)
   components: true,
@@ -33,11 +41,14 @@ export default {
   // Modules (https://go.nuxtjs.dev/config-modules)
   modules: [
     // https://go.nuxtjs.dev/axios
+    "@nuxtjs/moment",
     "@nuxtjs/axios"
   ],
 
   // Axios module configuration (https://go.nuxtjs.dev/config-axios)
-  axios: {},
+  axios: {
+    baseURL: "http://185.22.64.75:3143/"
+  },
 
   // Build Configuration (https://go.nuxtjs.dev/config-build)
   build: {
