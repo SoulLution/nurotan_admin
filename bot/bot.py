@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 
 
 namebot = "@ask314_bot"    
-token = '1455208962:AAGhAGxhgQfxM4O251tsc3ZuJEnBTO_J9KY'
+token = 'token'
 bot   = telebot.TeleBot(token)
 print ('[+] Запуск бота:',namebot)
 
@@ -52,6 +52,10 @@ def welcome(message):
         user = {
             'id': results[0][0]
         }
+
+    sql = "UPDATE n_clients SET branch_id = '1' WHERE `id` = '"+str(user['id'])+"'"
+    cursor.execute(sql)
+    db.commit()
     sql = """SELECT b.id, b.title, b.answers_type,
           JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers
           FROM n_branch b
@@ -114,7 +118,7 @@ def messageHandler(message):
         sql = "INSERT INTO n_messages (`content`,`from`,`user_id`) VALUES ('{}', 'client', '{}')".format(message.text, user['id'])
         cursor.execute(sql)
         db.commit()
-        sql = """SELECT b.answers_type, b.to_branch,
+        sql = """SELECT b.id, b.answers_type, b.to_branch,
             JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'to_branch', a.to_branch,'content', a.content, 'tag_id',a.tag_id)) AS answers,
             b.is_request
             FROM n_branch b
@@ -126,10 +130,11 @@ def messageHandler(message):
         cursor.execute(sql)
         results2 = cursor.fetchall()     
         current = {
-            'answers_type': results2[0][0],
-            'to_branch': results2[0][1],
-            'answers': json.loads(results2[0][2]),
-            'is_request': results2[0][3]
+            'id': results2[0][0],
+            'answers_type': results2[0][1],
+            'to_branch': results2[0][2],
+            'answers': json.loads(results2[0][3]),
+            'is_request': results2[0][4]
         }
         if current['answers_type'] == '2':
             if current['to_branch'] and current['to_branch'] != 'null' :
@@ -197,6 +202,7 @@ def messageHandler(message):
         else:
             for answer in current['answers']: 
                 if message.text == replaceTextButton(answer['content']) :
+                    
                     if answer['to_branch'] and answer['to_branch'] != 'null' :
                         sql = """SELECT b.id, b.title, b.answers_type,
                             JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers,
@@ -289,8 +295,11 @@ def messageHandler(message):
                 sql = "UPDATE n_request_content SET answer = '{}' WHERE `id` = {}".format(replaceTextButton(message.text), results[0][0])
                 cursor.execute(sql)
                 db.commit()
+                sql = "UPDATE n_request_content SET branch_id = '{}' WHERE `id` = {}".format(current['id'], results[0][0])
+                cursor.execute(sql)
+                db.commit()
             else :
-                sql = "INSERT INTO n_request_content (`request_id`,`title`,`answer`) VALUES ('{}','{}','{}')".format(request['id'], current['is_request'], replaceTextButton(message.text))
+                sql = "INSERT INTO n_request_content (`request_id`,`title`,`answer`, `branch_id`) VALUES ('{}','{}','{}','{}')".format(request['id'], current['is_request'], replaceTextButton(message.text), current['id'])
                 cursor.execute(sql)
                 db.commit()
         if item['is_request'] == 'undefined' :
@@ -330,7 +339,7 @@ def callback_inline(call):
             'id': user[0][0],
             'branch_id': user[0][1]
         }
-        sql = """SELECT b.answers_type, b.to_branch,
+        sql = """SELECT b.id, b.answers_type, b.to_branch,
             JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'to_branch', a.to_branch,'content', a.content, 'tag_id',a.tag_id)) AS answers,
             b.is_request
             FROM n_branch b
@@ -342,10 +351,11 @@ def callback_inline(call):
         cursor.execute(sql)
         results2 = cursor.fetchall()     
         current = {
-            'answers_type': results2[0][0],
-            'to_branch': results2[0][1],
-            'answers': json.loads(results2[0][2]),
-            'is_request': results2[0][3]
+            'id': results2[0][0],
+            'answers_type': results2[0][1],
+            'to_branch': results2[0][2],
+            'answers': json.loads(results2[0][3]),
+            'is_request': results2[0][4]
         }
         if current['answers_type'] == '2':
             if current['to_branch'] and current['to_branch'] != 'null' :
@@ -509,8 +519,11 @@ def callback_inline(call):
                         sql = "UPDATE n_request_content SET answer = '{}' WHERE `id` = {}".format(replaceTextButton(answer['content']), results[0][0])
                         cursor.execute(sql)
                         db.commit()
+                        sql = "UPDATE n_request_content SET branch_id = '{}' WHERE `id` = {}".format(current['id'], results[0][0])
+                        cursor.execute(sql)
+                        db.commit()
                     else :
-                        sql = "INSERT INTO n_request_content (`request_id`,`title`,`answer`) VALUES ('{}','{}','{}')".format(request['id'], current['is_request'], replaceTextButton(answer['content']))
+                        sql = "INSERT INTO n_request_content (`request_id`,`title`,`answer`, `branch_id`) VALUES ('{}','{}','{}','{}')".format(request['id'], current['is_request'], replaceTextButton(answer['content']),current['id'])
                         cursor.execute(sql)
                         db.commit()
         if item['is_request'] == 'undefined' :
@@ -532,6 +545,9 @@ def callback_inline(call):
  
     except Exception as e:
         print(repr(e))
- 
+
+def botSendMessage (id, message) :
+    bot.send_message(id, replaceText(message), parse_mode='Markdown')
+    return True
 # RUN
 bot.polling(none_stop=True)

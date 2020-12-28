@@ -10,7 +10,11 @@
       </div>
       <div class="flex flex-row flex-wrap w-full pt-4 pb-8 px-8">
         <template v-for="(item, i) in childs">
-          <div :key="i" class="w-1/4 pr-7" :class="{ 'mt-3': i > 3 }">
+          <div
+            :key="i"
+            class="w-1/4 pr-7"
+            :class="{ 'mt-3': i > 3 || childs.length <= 4 }"
+          >
             <div v-if="item.component" class="flex flex-col">
               <span class="font-bold">{{ item.title }}</span>
               <component

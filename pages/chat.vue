@@ -4,12 +4,13 @@
       <h1 class="page-title text-cyan text-2xl font-bold">Активные диалоги</h1>
       <div class="flex flex-row py-10">
         <div class="flex flex-col pr-3">
-          <template v-for="chat in chats">
-            <div
-              :key="chat.id"
-              class="chater bg-white pb-8 rounded-30 flex flex-row justify-between mb-7 px-7 py-6 mt-3 cursor-pointer"
+          <template v-for="(list, i) in chats">
+            <router-link
+              :key="list.id"
+              :to="'/chat?user_id=' + list.id"
+              class="chater bg-white pb-8 rounded-30 flex flex-row justify-between mb-7 pl-11 pr-7 py-6 mt-3 cursor-pointer"
             >
-              <div class="flex flex-row">
+              <div class="flex flex-row justify-between">
                 <div class="ava">
                   <img src="user.svg" />
                   <div class="absolute">
@@ -28,20 +29,27 @@
                   </div>
                 </div>
                 <div class="flex flex-col justify-start items-start mt-2">
-                  <h4 class="font-bold mb-1">{{ chat.fio }}</h4>
-                  <span class="text-sm text-opacity-50 text-black">{{
-                    chat.last.message
-                  }}</span>
+                  <h4 class="font-bold mb-1">{{ list.name }}</h4>
+                  <span
+                    class="text-sm text-opacity-50 text-black"
+                    v-html="list.messages[list.messages.length - 1].content"
+                  ></span>
                 </div>
               </div>
               <div class="flex flex-col justify-between items-start">
-                <span class="status text-xs" :class="{ active: chat.active }">{{
-                  $moment(chat.last.date).format("hh:mm")
-                }}</span>
-                <img :src="chat.messanger + '.svg'" />
+                <span
+                  class="status text-xs"
+                  :class="{ active: i === current_chat }"
+                >
+                  {{
+                    $moment(
+                      list.messages[list.messages.length - 1].date
+                    ).format("HH:mm")
+                  }}
+                </span>
+                <img :src="list.from + '.svg'" />
               </div>
-              <div class=""></div>
-            </div>
+            </router-link>
           </template>
         </div>
         <div class="ml-4 w-3/4">
@@ -49,69 +57,75 @@
             <div
               class="flex flex-row px-12 py-6 justify-between border-b border-black border-opacity-10"
             >
-              <div class="flex flex-col">
-                <h4 class="font-bold mb-1">{{ chats[current_chat].fio }}</h4>
+              <div v-if="chats.length" class="flex flex-col">
+                <h4 class="font-bold mb-1">{{ chats[current_chat].name }}</h4>
                 <div
                   class="flex flex-row text-black text-opacity-50 text-sm mt-3"
                 >
-                  <img src="wp.svg" class="mr-3" style="width: 22px" />
+                  <img
+                    :src="chats[current_chat].from + '.svg'"
+                    class="mr-3"
+                    style="width: 22px"
+                  />
                   <span>
-                    {{ chats[current_chat].phone }},
-                    {{ chats[current_chat].city }}
+                    {{ chats[current_chat].phone }}
                   </span>
                 </div>
               </div>
               <div class="flex flex-row mt-2">
                 <button
                   class="py-3 ml-6 px-4 truncate text-cyan border-cyan border rounded-5"
+                  @click="manager_popup = true"
                 >
                   Сменить ответственного
                 </button>
                 <button
                   class="py-3 ml-6 px-4 truncate text-cyan border-cyan border rounded-5"
+                  @click="openChangeBranch()"
                 >
                   Переместить на этап
                 </button>
-                <button
+                <!-- <button
                   class="py-3 ml-6 px-4 truncate text-red border-red border rounded-5"
                 >
                   Отключить бота
-                </button>
+                </button> -->
               </div>
             </div>
             <div
+              ref="chat"
               class="chat overflow-x-hidden overflow-y-scroll px-8 flex flex-col"
             >
-              <template v-for="message in chats[current_chat].chat">
+              <template v-for="message in chat">
                 <div
                   :key="message.id"
                   class="message-block w-full flex py-5"
                   :class="{
-                    'left flex-row':
-                      message.sender_id &&
-                      !message.me &&
-                      message.sender_id !== 51,
-                    'right flex-row-reverse': message.me,
-                    'system flex-row-reverse': !message.sender_id && !message.me
+                    'left flex-row': message.from === 'client',
+                    'right flex-row-reverse': message.from !== 'client'
                   }"
                 >
                   <div class="ava">
-                    <img
-                      v-if="message.sender_id && message.sender_id !== 51"
-                      src="user.svg"
-                    />
+                    <img v-if="message.from === 'client'" src="user.svg" />
                   </div>
-                  <div class="message relative">
-                    <span>{{ message.message }}</span>
+                  <div
+                    class="message flex flex-col relative"
+                    :class="{ 'items-end': message.from !== 'client' }"
+                  >
+                    <span v-if="!isNaN(message.from)" class="text-cyan mb-4">{{
+                      message.user.name
+                    }}</span>
+                    <span v-html="message.content"></span>
                     <div class="absolute">
-                      {{ $moment(message.date).format("hh:mm") }}
+                      {{ checkDate(message.date) }}
                     </div>
                   </div>
                 </div>
               </template>
             </div>
-            <div
+            <form
               class="sender px-8 flex justify-end items-center relative flex relative"
+              @submit.prevent="sendMessage()"
             >
               <input
                 v-model="form.message"
@@ -119,32 +133,42 @@
                 class="w-full rounded-full border border-black
               border-opacity-10 py-9 outline-none mt-4 p-70px"
               />
-              <div class="absolute"><img src="add_file.svg" /></div>
-              <div class="absolute">
-                <img src="send.svg" @click="sendMessage()" />
+              <div class="absolute hidden"><img src="add_file.svg" /></div>
+              <div class="absolute" @click="sendMessage()">
+                <img src="send.svg" />
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </div>
-      <!-- <bottom-popup
-      v-if="popup"
-      :childs="popup_content"
-      :title="
-        popup_content[0].value ? 'Изменить' : 'Добавить нового сотрудника'
-      "
-      :button="popup_content[0].value ? 'Сохранить' : 'Добавить'"
-      @close="popup = false"
-    /> -->
+      <bottom-popup
+        :popup="popup"
+        :childs="popup_content"
+        title="Изменить"
+        button="Сохранить"
+        @close="e => changeBranch(e)"
+      />
     </div>
+    <bottom-manager-popup
+      :popup="manager_popup"
+      title="Изменить"
+      button="Сохранить"
+      @close="e => changeManager(e)"
+    />
   </div>
 </template>
 
 <script>
+import vSelect from "@/components/vSelect"
 export default {
+  beforeRouteLeave(to, from, next) {
+    if (this.inter) clearInterval(this.inter)
+    next()
+  },
   middleware: "index",
   data() {
     return {
+      load: true,
       current_chat: 0,
       current_page: 0,
       form: {
@@ -152,124 +176,184 @@ export default {
         files: []
       },
       chat: [],
-      chats: [
+      chats: [],
+      inter: null,
+      popup: false,
+      manager_popup: false,
+      popup_content: [
         {
-          id: 1,
-          fio: "Василий Комков",
-          last: {
-            date: new Date(),
-            message: "Hello world!"
-          },
-          phone: "+7 770 343 34 34",
-          city: "Almaty",
-          active: true,
-          messanger: "wp",
-          chat: [
-            {
-              id: 1,
-              message: "Новое обращение",
-              type: "0",
-              me: false,
-              sender_id: 0,
-              files: [],
-              date: new Date(new Date().setHours(10, 12, 22))
-            },
-            {
-              id: 2,
-              message: "Чат назначен на VasiliyKomkov. Инициатор - VasyaKomkov",
-              type: "0",
-              me: false,
-              sender_id: 0,
-              files: [],
-              date: new Date(new Date().setHours(10, 14, 10))
-            },
-            {
-              id: 3,
-              message: "Hello world!",
-              type: "0",
-              files: [],
-              sender_id: 1,
-              me: false,
-              date: new Date()
-            }
-          ]
-        },
-        {
-          id: 2,
-          fio: "Не Василий Комков",
-          last: {
-            date: new Date(),
-            message: "Hello world!"
-          },
-          phone: "+7 770 343 34 34",
-          city: "Almaty",
-          active: true,
-          messanger: "tg",
-          chat: [
-            {
-              id: 4,
-              message: "Новое обращение",
-              type: "0",
-              me: false,
-              sender_id: 0,
-              files: [],
-              date: new Date(new Date().setHours(10, 12, 22))
-            },
-            {
-              id: 5,
-              message: "Чат назначен на VasiliyKomkov. Инициатор - VasyaKomkov",
-              type: "0",
-              me: false,
-              sender_id: 0,
-              files: [],
-              date: new Date(new Date().setHours(10, 14, 10))
-            },
-            {
-              id: 6,
-              message: "Hello world!",
-              type: "0",
-              files: [],
-              sender_id: 1,
-              me: false,
-              date: new Date()
-            }
-          ]
+          title: "",
+          component: vSelect,
+          value: "",
+          childs: []
         }
-      ]
+      ],
+      save_content: []
     }
+  },
+  watch: {
+    $route: {
+      deep: true,
+      handler() {
+        this.current_page = 0
+        this.manager_popup = false
+        this.popup = false
+        this.chat = []
+        this.getChatList()
+        this.getClients()
+        if (this.inter) clearInterval(this.inter)
+      }
+    }
+  },
+  beforeDestroy() {
+    if (this.inter) clearInterval(this.inter)
   },
   created() {
     this.getChatList()
+    this.getClients()
   },
   methods: {
+    changeManager(e) {
+      if (e)
+        this.$axios.get(
+          `/update_changeManager/123123123/${this.$route.query.user_id}/${e.id}/`
+        )
+      this.manager_popup = false
+    },
+    changeBranch(e) {
+      if (e && this.popup_content[0].value) {
+        let data = {
+          client_id: this.$route.query.user_id,
+          to_branch: this.save_content.find(
+            x => x.title === this.popup_content[0].value
+          ).branch_id
+        }
+        this.$axios
+          .post("/changeBranch/123123123/", this.changeData(data))
+          .then(res => console.log(res))
+      }
+      this.popup = false
+    },
+    openChangeBranch() {
+      let data = {
+        client_id: this.$route.query.user_id
+      }
+      this.$axios
+        .post("/lastBranches/123123123/", this.changeData(data))
+        .then(res => {
+          this.popup = true
+          this.popup_content[0].title = "Выбрать этап"
+          this.popup_content[0].value = ""
+          this.popup_content[0].childs = JSON.parse(res.data[0].content).map(
+            x => x.title
+          )
+          this.save_content = JSON.parse(res.data[0].content)
+        })
+    },
+    getClients() {
+      let data = localStorage.getItem("chats")
+        ? JSON.parse(localStorage.getItem("chats"))
+        : []
+
+      for (let i = 0; i < data.length - 1; i++)
+        if (
+          data[i].last.valueOf() <
+          new Date().valueOf() + 1000 * 60 * 60 * 6
+        ) {
+          data.splice(i, 1)
+          i--
+        }
+      this.$axios
+        .get(`/Client/12313123/${this.$route.query.user_id}`)
+        .then(res => {
+          let new_data = res.data.map(x => {
+            return {
+              ...x,
+              messages: JSON.parse(x.messages)
+            }
+          })
+          if (data.findIndex(x => x.id == this.$route.query.user_id) === -1) {
+            data.splice(0, 0, new_data[0])
+            data[0].last = new Date()
+            this.current_chat = 0
+          } else {
+            this.current_chat = data.findIndex(
+              x => x.id == this.$route.query.user_id
+            )
+            data[data.findIndex(x => x.id == this.$route.query.user_id)] =
+              new_data[0]
+            data[
+              data.findIndex(x => x.id == this.$route.query.user_id)
+            ].last = new Date()
+          }
+          localStorage.setItem("chats", JSON.stringify(data))
+          this.chats = data
+        })
+    },
+    checkDate(date) {
+      if (
+        this.$moment(new Date()).format("DD MM YYYY") !==
+        this.$moment(date).format("DD MM YYYY")
+      )
+        return this.$moment(date).format("DD.MM.YYYY HH:mm")
+      else return this.$moment(date).format("HH:mm")
+    },
     getChatList() {
       let data = {
         page: this.current_page * 20,
         user_id: this.$route.query.user_id,
         last: 0
       }
+      this.load = false
       this.$axios
         .post("/n_messagesList/123123123/", this.changeData(data))
         .then(res => {
-          console.log(res.data)
           res.data.forEach(x => {
             this.chat.splice(0, 0, x)
           })
+          if (!this.current_page)
+            this.$nextTick(() => {
+              this.$refs["chat"].scrollTo({
+                top:
+                  this.$refs["chat"].clientHeight +
+                  this.$refs["chat"].scrollHeight
+              })
+              this.$refs["chat"].onscroll = () => {
+                if (this.$refs["chat"].scrollTop <= 250 && this.load)
+                  this.getChatList()
+              }
+            })
+          if (!this.inter)
+            this.inter = setInterval(() => {
+              let data = {
+                page: 0,
+                user_id: this.$route.query.user_id,
+                last: this.chat[this.chat.length - 1].id
+              }
+              this.$axios
+                .post("/n_messagesList/123123123/", this.changeData(data))
+                .then(res => {
+                  res.data.forEach(x => {
+                    this.chat.push(x)
+                  })
+                })
+            }, 5000)
           this.current_page++
         })
+        .finally(() => (this.load = true))
     },
     sendMessage() {
-      this.addMessage(this.current_chat, {
-        ...this.form,
-        me: true,
-        date: new Date(),
-        sender_id: 51,
-        type: 0
-      })
-      this.form = { message: "", files: [] }
-    },
-    addMessage(index, data) {
-      this.chats[index].chat.push(data)
+      let data = {
+        message: this.form.message,
+        user_id: this.$route.query.user_id,
+        from: JSON.parse(localStorage.getItem("auth")).id
+      }
+      this.$axios
+        .post("/sendMessage/123123123/", this.changeData(data))
+        .then(res => {
+          console.log(res)
+          this.form = { message: "", files: [] }
+        })
     },
     changeData(data) {
       let formData = new FormData()
@@ -284,14 +368,16 @@ export default {
 
 <style lang="scss" scoped>
 .chater {
+  position: relative;
   &:before {
     content: "";
     display: block;
+    position: absolute;
     background-color: #d42d11;
     border-radius: 50px;
-    height: 100%;
+    height: calc(100% - 3rem);
     width: 5px;
-    margin-right: 1rem;
+    margin-left: -1rem;
   }
   & .ava {
     min-width: 66px;
@@ -385,11 +471,12 @@ export default {
 .message-block {
   &.left {
     & .message {
+      max-width: 75%;
       margin-left: 58px;
       background: #f5f5f5;
       border-radius: 20px;
       padding: 18px 25px 27px 37px;
-      color: #00000040;
+      color: #000000e0;
       font-size: 14px;
       line-height: 19px;
       &:before {
@@ -408,8 +495,11 @@ export default {
   &.right {
     & .ava {
       opacity: 0;
+      max-width: 0;
+      min-width: 0;
     }
     & .message {
+      max-width: 75%;
       background: #f5f5f5;
       border-radius: 20px;
       padding: 18px 25px 27px 37px;

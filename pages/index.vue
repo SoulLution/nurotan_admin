@@ -278,7 +278,7 @@ export default {
     uploadTemplates(template) {
       let to_branch = new_in_all_branches[template.to_branch]
       if (!to_branch) to_branch = template.to_branch
-      return new Promise(resolve => {
+      return new Promise((resolve, reject) => {
         if (template.id < 0) {
           this.$axios
             .get(
@@ -291,6 +291,7 @@ export default {
               template.to_branch = to_branch
               resolve(true)
             })
+            .catch(() => reject(false))
         } else {
           this.$axios
             .get(
@@ -299,6 +300,7 @@ export default {
               }/${this.splitingForContent(template.title)}/${to_branch}/`
             )
             .then(() => resolve(true))
+            .catch(() => reject(false))
         }
       })
     },
@@ -308,7 +310,7 @@ export default {
         if (branch.for_all) from = branch.for_all
         let to_branch = new_in_all_branches[from]
         if (!to_branch) to_branch = from
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
           if ((answer.id + "").indexOf("-") > -1) {
             this.$axios
               .get(
@@ -323,6 +325,7 @@ export default {
                 answer.to_branch = to_branch
                 resolve(true)
               })
+              .catch(() => reject(false))
           } else {
             this.$axios
               .get(
@@ -333,12 +336,13 @@ export default {
                 }/${to_branch}/`
               )
               .then(() => resolve(true))
+              .catch(() => reject(false))
           }
         })
       }
     },
     uploadBranch(branch) {
-      return new Promise(resolve => {
+      return new Promise((resolve, reject) => {
         if ((branch.id + "").indexOf("-") > -1) {
           this.$axios
             .get(
@@ -355,6 +359,7 @@ export default {
               branch.id = res.data[0]
               resolve(true)
             })
+            .catch(() => reject(false))
         } else {
           let to_branch = new_in_all_branches[branch.to_branch]
           if (!to_branch) to_branch = branch.to_branch
@@ -371,6 +376,7 @@ export default {
               }/`
             )
             .then(() => resolve(true))
+            .catch(() => reject(false))
         }
       })
     },
@@ -497,7 +503,11 @@ export default {
     },
     changeTree(index) {
       this.current_template = this.templates[index].id
-      if (this.templates[index].to_branch)
+      console.log(this.templates[index].to_branch)
+      if (
+        this.templates[index].to_branch &&
+        this.templates[index].to_branch !== "0"
+      )
         this.tree = [
           this.all_branches[
             this.findInAllBranches(this.templates[index].to_branch)

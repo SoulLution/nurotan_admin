@@ -9,9 +9,17 @@ import math
 app = Flask(__name__)
 CORS(app)
 
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
+# from importlib import reload
+# import sys
+# reload(sys)
+# sys.setdefaultencoding('utf-8')
+
+
+from bs4 import BeautifulSoup
+def replaceText(text):
+    return BeautifulSoup(text.replace('<p>','\n').replace('<br>','\n').replace('<strong>','*').replace('</strong>','*').replace('<em>','_').replace('</em>','_').strip(), "html.parser").get_text()
+def replaceTextButton(text):
+    return BeautifulSoup(text.strip(), "html.parser").get_text()
 
 @app.route('/')
 def hello_world():
@@ -76,26 +84,25 @@ def userList (access_code,sort_by,sort_type):
 
 
 
-@app.route('/n_searchUser/<access_code>/<search_text>/')   ### 3
-def searchUser (access_code,search_text):
+@app.route('/searchUser/<access_code>/', methods=['POST'])   ### 3
+def searchUser (access_code):
     import iz_func    
     import json
     db,cursor = iz_func.connect ()
     list = []
-    sql = "select id,blocked,email,full_name,is_admin,password,phone from n_users where full_name like '%"+str(search_text)+"%' "
-    print ('[sql3] :',sql)
+    sql = """SELECT id, full_name 
+            FROM n_users
+            WHERE is_admin = 'No'
+            AND blocked = 'No'
+            AND (full_name LIKE '%{}%' OR phone LIKE '%{}%' OR email LIKE '%{}%')
+    """.format(request.form['find'], request.form['find'], request.form['find'])
     cursor.execute(sql)
     results2 = cursor.fetchall()        
     for row2 in results2:    
-        id,blocked,email,full_name,is_admin,password,phone = row2
+        id,full_name = row2
         list.append ({
             'id': id,
-            'blocked': blocked,
-            'email': email,
-            'full_name': full_name,
-            'is_admin': is_admin,
-            'password': 'password',
-            'phone': phone
+            'full_name': full_name
         }) 
     answer = json.dumps(list)    
     return answer
@@ -126,7 +133,7 @@ def n_addUset (access_code,full_name,is_admin,password,phone,email):
     print ('[+] phone:',phone)
     print ('[+] email:',email)
     db,cursor = iz_func.connect ()
-    full_name = full_name.encode('utf8')
+    # full_name = full_name.encode('utf8')
     sql = "INSERT INTO n_users (`blocked`,`email`,`full_name`,`is_admin`,`password`,`phone`) VALUES ('{}','{}','{}','{}','{}','{}')".format('No',email.strip(),full_name.strip(),is_admin.strip(),password.strip(),phone.strip())
     print ('[sql5] :',sql)
     cursor.execute(sql)
@@ -154,7 +161,7 @@ def n_update (access_code,id,full_name,is_admin,password,phone,email):
     #    list.append ([id,region,region_kaz,rion,rion_kaz]) 
     #answer = json.dumps(list)    
 
-    full_name = full_name.encode('utf8')
+    # full_name = full_name.encode('utf8')
     sql = "UPDATE n_users SET full_name = '"+str(full_name).strip()+"' WHERE `id` = '"+str(id)+"'"
     cursor.execute(sql)
     db.commit()
@@ -243,7 +250,7 @@ def n_CreateTemplate (access_code,title,to_branch):
     import iz_func    
     import json
     db,cursor = iz_func.connect ()
-    title = title.encode('utf8')
+    # title = title.encode('utf8')
     sql = "INSERT INTO n_template (`title`,`to_branch`) VALUES ('{}','{}')".format(title.replace('*!*','/').replace('@!@','?'),to_branch)
     print ('[sql5] :',sql)
     cursor.execute(sql)
@@ -259,7 +266,7 @@ def n_UpdateTemplate (access_code,id,title,to_branch):
     import iz_func    
     import json
     db,cursor = iz_func.connect ()
-    title = title.encode('utf8')
+    # title = title.encode('utf8')
     sql = "UPDATE n_template SET title = '"+str(title).replace('*!*','/').replace('@!@','?')+"' WHERE `id` = '"+str(id)+"'"
     cursor.execute(sql)
     db.commit()
@@ -299,10 +306,10 @@ def n_CreateBranch (access_code,answers_type,is_request,title,to_branch,for_all)
     import iz_func    
     import json
     db,cursor = iz_func.connect ()
-    title = title.encode('utf8')
-    is_request = is_request.encode('utf8')
-    to_branch = to_branch.encode('utf8')
-    for_all = for_all.encode('utf8')
+    # title = title.encode('utf8')
+    # is_request = is_request.encode('utf8')
+    # to_branch = to_branch.encode('utf8')
+    # for_all = for_all.encode('utf8')
     sql = "INSERT INTO n_branch (`answers_type`,`is_request`,`title`,`to_branch`,`for_all`) VALUES ('{}','{}','{}','{}','{}')".format (answers_type,is_request.replace('*!*','/').replace('@!@','?'),title.replace('*!*','/').replace('@!@','?'),to_branch,for_all)
     print ('[sql5] :',sql)
     cursor.execute(sql)
@@ -318,15 +325,15 @@ def n_UpdateBranch (access_code,id,answers_type,is_request,title,to_branch,for_a
     import iz_func    
     import json
     db,cursor = iz_func.connect ()
-    title = title.encode('utf8')
-    is_request = is_request.encode('utf8')
-    to_branch = to_branch.encode('utf8')
-    for_all = for_all.encode('utf8')
+    # title = title.encode('utf8')
+    # is_request = is_request.encode('utf8')
+    # to_branch = to_branch.encode('utf8')
+    # for_all = for_all.encode('utf8')
     
     sql = "UPDATE n_branch SET answers_type = '"+str(answers_type)+"' WHERE `id` = '"+str(id)+"'"
     cursor.execute(sql)
     db.commit()
-    sql = "UPDATE n_branch SET is_request = '"+is_request.replace('*!*','/').replace('@!@','?')+"' WHERE `id` = '"+str(id)+"'"
+    sql = "UPDATE n_branch SET is_request = '"+str(is_request).replace('*!*','/').replace('@!@','?')+"' WHERE `id` = '"+str(id)+"'"
     cursor.execute(sql)
     db.commit()
     sql = "UPDATE n_branch SET title = '"+str(title).replace('*!*','/').replace('@!@','?')+"' WHERE `id` = '"+str(id)+"'"
@@ -349,7 +356,7 @@ def n_CreateAnswer (access_code,branch_id,content,tag_id,to_branch):
     import iz_func    
     import json
     db,cursor = iz_func.connect ()
-    content = content.encode('utf8')
+    # content = content.encode('utf8')
     sql = "INSERT INTO n_answers (`branch_id`,`content`,`tag_id`,`to_branch`) VALUES ('{}','{}','{}','{}')".format(branch_id,content.replace('*!*','/').replace('@!@','?'),tag_id,to_branch)
     print ('[sql6] :',sql)
     cursor.execute(sql)
@@ -364,12 +371,12 @@ def n_UpdateAnswer (access_code,id,branch_id,content,tag_id,to_branch):
     import iz_func    
     import json
     db,cursor = iz_func.connect ()
-    content = content.encode('utf8')
+    # content = content.encode('utf8')
     
     sql = "UPDATE n_answers SET branch_id = '"+str(branch_id)+"' WHERE `id` = '"+str(id)+"'"
     cursor.execute(sql)
     db.commit()
-    sql = "UPDATE n_answers SET content = '"+str(content).replace('*!*','/').replace('@!@','?')+"' WHERE `id` = '"+str(id)+"'"
+    sql = "UPDATE n_answers SET content = '"+content.replace('*!*','/').replace('@!@','?')+"' WHERE `id` = '"+str(id)+"'"
     cursor.execute(sql)
     db.commit()
     sql = "UPDATE n_answers SET tag_id = '"+str(tag_id)+"' WHERE `id` = '"+str(id)+"'"
@@ -446,6 +453,35 @@ def n_tags (access_code):
 
 
 
+@app.route('/Client/<access_code>/<client_id>/')
+def Client (access_code, client_id):
+    import iz_func    
+    import json
+    db,cursor = iz_func.connect ()
+    list = []
+    sql = """SELECT c.id, c.name, c.phone, c.from,
+            JSON_ARRAYAGG(JSON_OBJECT('content', m.content, 'date', m.date)) AS messages
+            FROM n_clients c
+            JOIN n_messages m ON (m.user_id = c.id AND m.from = 'client')
+            WHERE c.id = {}
+            GROUP BY c.id
+            LIMIT 1
+            """.format(client_id)
+    cursor.execute(sql)
+    results2 = cursor.fetchall()        
+    for row2 in results2:    
+        id,name,phone,_from,messages = row2
+        list.append ({
+            'id':id,
+            'from': _from,
+            'name': name,
+            'phone': phone,
+            'messages': messages
+            }) 
+    answer = json.dumps(list)    
+    return answer
+
+
 @app.route('/ClientsList/<access_code>/', methods=['POST'])
 def ClientsList (access_code):
     import iz_func    
@@ -506,7 +542,7 @@ def update_changeManager (access_code,id,user_id):
     import json
     db,cursor = iz_func.connect ()
 
-    sql = "UPDATE n_clients SET user_id = '"+str(user_id)+"' WHERE `id` = '"+str(id)+"'"
+    sql = "UPDATE n_clients SET user_id = '"+str(user_id)+"' WHERE id = '"+str(id)+"'"
     print ('[sql11] :',sql)
     cursor.execute(sql)
     db.commit()
@@ -618,13 +654,54 @@ def n_update_requestChecked (access_code,id,checked):
     import json
     db,cursor = iz_func.connect ()
 
+    
+    if(checked == '3'): 
+        sql = """SELECT JSON_ARRAYAGG(JSON_OBJECT(0, rc.title, 1, rc.answer)) AS content
+                FROM n_requests r
+                JOIN n_request_content rc ON rc.request_id = r.id
+                WHERE r.id = '{}'
+                GROUP BY r.id
+                LIMIT 1""".format(id)
+        cursor.execute(sql)
+        results = cursor.fetchall() 
+        content = json.loads(results[0][0])
+        data = {}
+        for item in content:
+            data[item['0']] = item['1']
+        data = {
+            'dom': data['Адрес'].split(' ')[1] if len(data['Адрес'].split(' ')) >= 2 else '-',
+            'familiya': data['ФИО'].split(' ')[1] if len(data['ФИО'].split(' ')) >= 2 else '-',
+            'gorod': data['Регион'] or '-',
+            'harakter_voprosa': data['Характер вопроса'] or '-',
+            'imya': data['ФИО'].split(' ')[0] if len(data['ФИО'].split(' ')) >= 1 else '-',
+            'kategoriya_vozrasta': data['Возраст'] or '-',
+            'komu': '-',
+            'kratkoe_soderzhanie': data['Вопрос'] or '-',
+            'kvartira': data['Адрес'].split(' ')[2] if len(data['Адрес'].split(' ')) >= 3 else '-',
+            'mobilnij_telefon':  data['Телефон'] or '-',
+            'oblast': data['Район'] or '-',
+            'otchestvo': data['ФИО'].split(' ')[2] if len(data['ФИО'].split(' ')) >= 3 else '-',
+            'pol': data['Пол'] or '-',
+            'region': data['Регион'] or '-',
+            'status_obrativshegosya_litsa': data['Статус обращающегося'] or '-',
+            'tematika_voprosa': data['Тип вопроса'] or '-',
+            'trebuet_otveta': 'Да' if data['Статус обращающегося'] else 'Нет',
+            'ulitsa': data['Адрес'].split(' ')[0] if len(data['Адрес'].split(' ')) >= 1 else '-',
+            'vlozheniya': [],
+            'yazik_dokumenta': data['Язык'] or '-',
+            'whatsapp_telegram': 'Telegram'
+        }         
+        import requests
+        from requests.auth import HTTPBasicAuth
+        response = requests.post('https://doc.nurotan.kz/webservice/json/82be1ae3-5131-47ab-ae04-5fcc8a8a0161',
+        auth=HTTPBasicAuth('Chatbot', "password"),
+        data=data)
+
     sql = "UPDATE n_requests SET checked = '"+str(checked)+"' WHERE `id` = '"+str(id)+"'"
     print ('[sql13] :',sql)
     cursor.execute(sql)
     db.commit()
 
-    if(checked == 3):
-        print('popal')
         
     answer = 'Изменено'    
     return answer
@@ -691,7 +768,7 @@ def n_messagesList (access_code):
                 }
             })
         elif _from != 'bot' :
-            sql = """SELECT c.id, c.full_name
+            sql = """SELECT u.id, u.full_name
                     FROM n_users u
                     WHERE u.id = {}
                     LIMIT 1
@@ -727,6 +804,123 @@ def n_messagesList (access_code):
     #answer = "Отказано в доступе ..."
     return answer
 
+
+
+@app.route('/sendMessage/<access_code>/', methods=['POST'])
+def sendMessage (access_code):
+    import iz_func    
+    import json
+    # from bot import botSendMessage
+
+    db,cursor = iz_func.connect ()
+    list = []
+    sql = "SELECT messanger_id FROM n_clients WHERE id = '{}' LIMIT 1".format(request.form['user_id'])
+    cursor.execute(sql)
+    results = cursor.fetchall()
+    
+    import telebot
+    token = 'token'
+    bot   = telebot.TeleBot(token)
+    bot.send_message(results[0][0], request.form['message'], parse_mode='Markdown')
+    sql = "INSERT INTO n_messages (`content`,`user_id`,`from`) VALUES ('{}', '{}', '{}')".format(request.form['message'], request.form['user_id'], request.form['from'])
+    cursor.execute(sql)
+    db.commit()
+
+    answer = "Сообщение отправленно"
+    return answer
+
+
+@app.route('/lastBranches/<access_code>/', methods=['POST'])
+def lastBranches (access_code):
+    import iz_func    
+    import json
+    db,cursor = iz_func.connect ()
+    list = []
+    sql = """SELECT r.id,
+            JSON_ARRAYAGG(JSON_OBJECT('branch_id', rc.branch_id, 'title', rc.title)) AS content
+            FROM n_requests r
+            JOIN n_request_content rc ON rc.request_id = r.id
+            WHERE client_id = '{}'
+            GROUP BY r.id
+            ORDER BY r.id DESC 
+            LIMIT 1""".format(request.form['client_id'])
+    cursor.execute(sql)
+    results = cursor.fetchall()      
+    for row in results:    
+        id,content = row
+        list.append ({
+            'id':id,
+            'content': content
+            }) 
+    answer = json.dumps(list)    
+    return answer
+
+@app.route('/changeBranch/<access_code>/', methods=['POST'])
+def changeBranch (access_code):
+    import iz_func    
+    import json
+    db,cursor = iz_func.connect ()
+
+    sql = "SELECT id FROM n_requests WHERE client_id = '{}' ORDER BY id DESC LIMIT 1".format(request.form['client_id'])
+    cursor.execute(sql)
+    results = cursor.fetchall()
+    sql = "UPDATE n_requests SET status = 0 WHERE `id` = '"+str(results[0][0])+"'"
+    cursor.execute(sql)
+    db.commit()
+    sql = "UPDATE n_clients SET branch_id = {} WHERE `id` = {}".format(request.form['to_branch'], request.form['client_id'])
+    cursor.execute(sql)
+    db.commit()
+    
+    sql = """SELECT b.id, b.title, b.answers_type,
+        JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers,
+        b.is_request
+        FROM n_branch b
+        LEFT JOIN n_answers a ON  a.branch_id = b.id
+        WHERE b.id = {}
+        GROUP BY b.id
+        LIMIT 1""".format(request.form['to_branch'])
+    cursor.execute(sql)
+    results2 = cursor.fetchall()     
+    item = {
+        'id': results2[0][0],
+        'title': results2[0][1],
+        'answers_type': results2[0][2],
+        'answers': json.loads(results2[0][3]),
+        'is_request': results2[0][4]
+    }
+    import telebot
+    from telebot import types
+    token = 'token'
+    bot   = telebot.TeleBot(token)
+    sql = "SELECT messanger_id FROM n_clients WHERE id = '{}' LIMIT 1".format(request.form['client_id'])
+    cursor.execute(sql)
+    results = cursor.fetchall()
+    if item['answers_type'] == '0' :
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        for answer in item['answers']:    
+            markup_item = types.InlineKeyboardButton(text=replaceTextButton(answer['content']), callback_data=(answer['id']))
+            markup.add(markup_item)
+        bot.send_message(results[0][0], replaceText(item['title']), parse_mode='Markdown', reply_markup=markup)
+        sql = "INSERT INTO n_messages (`content`,`from`,`user_id`) VALUES ('{}', 'bot', '{}')".format(item['title'],request.form['client_id'])
+        cursor.execute(sql)
+        db.commit()
+    elif item['answers_type'] == '1' :
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        for answer in item['answers']:    
+            markup_item = types.KeyboardButton(text=replaceTextButton(answer['content']))
+            markup.add(markup_item)
+        bot.send_message(results[0][0], replaceText(item['title']), parse_mode='Markdown', reply_markup=markup)
+        sql = "INSERT INTO n_messages (`content`,`from`,`user_id`) VALUES ('{}', 'bot', '{}')".format(item['title'],request.form['client_id'])
+        cursor.execute(sql)
+        db.commit()
+    else :
+        bot.send_message(results[0][0], replaceText(item['title']), parse_mode='Markdown')
+        sql = "INSERT INTO n_messages (`content`,`from`,`user_id`) VALUES ('{}', 'bot', '{}')".format(item['title'],request.form['client_id'])
+        cursor.execute(sql)
+        db.commit()
+
+    answer = "Шаг изменён"
+    return answer
 
 
 

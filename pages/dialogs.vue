@@ -162,6 +162,7 @@
                   <v-button
                     class="whitespace-no-wrap justify-center ml-2"
                     title="Назначить на .."
+                    @click="changeUser(user)"
                   />
                 </td>
               </tr>
@@ -180,21 +181,16 @@
         </table>
       </div>
     </div>
-    <bottom-popup
-      v-if="popup"
-      :childs="popup_content"
-      :title="
-        popup_content[0].value ? 'Изменить' : 'Добавить нового сотрудника'
-      "
-      :button="popup_content[0].value ? 'Сохранить' : 'Добавить'"
-      @close="popup = false"
+    <bottom-manager-popup
+      :popup="popup"
+      title="Изменить"
+      button="Сохранить"
+      @close="e => changeManager(e)"
     />
   </div>
 </template>
 
 <script>
-import vInput from "@/components/vInputBottom"
-import vSelect from "@/components/vSelect"
 export default {
   middleware: "index",
   data() {
@@ -215,43 +211,8 @@ export default {
         }
       ],
       users: [],
-      popup: false,
-      popup_content: [
-        {
-          title: "Ф.И.О.",
-          component: vInput,
-          value: "",
-          placeholder: "Введите ФИО сотрудника"
-        },
-        {
-          title: "Должность",
-          component: vSelect,
-          value: "Менеджер",
-          childs: ["Менеджер", "Администратор"]
-        },
-        {
-          title: "Пароль",
-          component: vInput,
-          type: "password",
-          value: "",
-          placeholder: "Введите пароль"
-        },
-        {},
-        {
-          title: "Номер телефона",
-          component: vInput,
-          value: "",
-          type: "phone",
-          placeholder: "Введите номер"
-        },
-        {
-          title: "E-mail",
-          component: vInput,
-          type: "email",
-          value: "",
-          placeholder: "Введите email"
-        }
-      ]
+      current_user: null,
+      popup: false
     }
   },
   watch: {
@@ -266,6 +227,15 @@ export default {
     this.getClients()
   },
   methods: {
+    changeManager(e) {
+      if (e)
+        this.$axios
+          .get(
+            `/update_changeManager/123123123/${this.current_user.id}/${e.id}/`
+          )
+          .then(() => [(this.current_user.manager = e)])
+      this.popup = false
+    },
     getClients() {
       let data = {
         find: this.search,
@@ -279,17 +249,6 @@ export default {
       this.$axios
         .post("/ClientsList/123123123/", this.changeData(data))
         .then(res => {
-          // {
-          //   id: 1,
-          //   operator: "Айгерим Алетова",
-          //   fio: "Потапов Даниил",
-          //   messanger: "tg",
-          //   message: "12123211212321121232112123211212321121232112123211212321",
-          //   tags: ["Тэг"],
-          //   files: [],
-          //   first: new Date(new Date().setDate(new Date().getDate() - 2)),
-          //   end: new Date(new Date().setHours(10, 10, 10))
-          // },
           this.users = res.data.map(x => {
             return {
               ...x,
@@ -303,12 +262,12 @@ export default {
     checkFormat(date) {
       return this.$moment(date).format("YY.MM.DD") !==
         this.$moment(new Date()).format("YY.MM.DD")
-        ? "DD.MM.YY hh:mm"
-        : "hh:mm"
+        ? "DD.MM.YY HH:mm"
+        : "HH:mm"
     },
     changeUser(user) {
       this.popup = true
-      console.log(user)
+      this.current_user = user
     },
     changeData(data) {
       let formData = new FormData()

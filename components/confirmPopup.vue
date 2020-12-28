@@ -14,15 +14,17 @@
       <div class="flex flex-row justify-center py-4 px-8">
         <h2 class=" text-4xl mb-22">Проверка обращения</h2>
       </div>
-      <div class="flex flex-row flex-wrap w-full pt-4 pb-8 px-8">
+      <div
+        class="flex flex-row flex-wrap w-full pt-4 pb-8 px-8 overflow-y-auto"
+      >
         <template v-for="answer in answers">
           <div :key="answer.id" class="w-1/3 pr-7">
             <div class="flex flex-col">
               <span class="font-bold">{{ answer.title }}</span>
               <span
                 class="rounded-5 border border-black border-opacity-25 mt-6 mb-7 p-4"
+                v-html="answer.value"
               >
-                {{ answer.value }}
               </span>
             </div>
           </div>

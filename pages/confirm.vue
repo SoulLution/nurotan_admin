@@ -141,6 +141,7 @@
                     "
                   />
                   <v-button
+                    v-if="user.checked != 3"
                     class="whitespace-no-wrap justify-center ml-2"
                     title="Подтвердить"
                     @click="changeUser(i)"
@@ -229,6 +230,7 @@ export default {
             .then(() => {
               this.users[this.cur_user].checked = 3
             })
+            .finally(() => (this.popup = false))
         else
           this.$axios
             .get(
@@ -239,6 +241,7 @@ export default {
             .then(() => {
               this.users[this.cur_user].checked = 2
             })
+            .finally(() => (this.popup = false))
       } else this.popup = false
     },
     removeToDefalut() {
@@ -250,6 +253,7 @@ export default {
         ).format("YYYY.MM.DD")
       ]
       this.search = ""
+      this.getUsers()
     },
     changeUser(index) {
       this.popup = true

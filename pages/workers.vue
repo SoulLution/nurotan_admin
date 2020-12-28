@@ -62,9 +62,9 @@
             <td
               class="cursor-pointer hover:bg-gray-100"
               :class="{
-                active: sort_by.value === 'id_admin' && sort_by.type === 'asc'
+                active: sort_by.value === 'is_admin' && sort_by.type === 'asc'
               }"
-              @click="changeSort('id_admin')"
+              @click="changeSort('is_admin')"
             >
               <div>Должность</div>
             </td>
