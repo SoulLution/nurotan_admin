@@ -146,10 +146,12 @@ export default {
   data() {
     return {
       current_chat: 0,
+      current_page: 0,
       form: {
         message: "",
         files: []
       },
+      chat: [],
       chats: [
         {
           id: 1,
@@ -236,7 +238,26 @@ export default {
       ]
     }
   },
+  created() {
+    this.getChatList()
+  },
   methods: {
+    getChatList() {
+      let data = {
+        page: this.current_page * 20,
+        user_id: this.$route.query.user_id,
+        last: 0
+      }
+      this.$axios
+        .post("/n_messagesList/123123123/", this.changeData(data))
+        .then(res => {
+          console.log(res.data)
+          res.data.forEach(x => {
+            this.chat.splice(0, 0, x)
+          })
+          this.current_page++
+        })
+    },
     sendMessage() {
       this.addMessage(this.current_chat, {
         ...this.form,
@@ -249,6 +270,13 @@ export default {
     },
     addMessage(index, data) {
       this.chats[index].chat.push(data)
+    },
+    changeData(data) {
+      let formData = new FormData()
+      Object.keys(data).forEach(key => {
+        formData.append(key, data[key])
+      })
+      return formData
     }
   }
 }

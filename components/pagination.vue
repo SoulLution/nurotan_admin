@@ -43,7 +43,11 @@
     border-opacity-10 ml-8"
       placeholder="Введите номер ..."
     />
-    <v-button class="ml-5" title="Перейти" @click="changeToInpRange()" />
+    <v-button
+      class="ml-5 justify-center"
+      title="Перейти"
+      @click="changeToInpRange()"
+    />
   </div>
 </template>
 

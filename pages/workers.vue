@@ -154,72 +154,7 @@ export default {
   data() {
     return {
       current_page: 1,
-      users: [
-        // {
-        //   id: 1,
-        //   code: "2020050301323",
-        //   fio: "Потапов Даниил",
-        //   post: "Менеджер",
-        //   phone: "+ 7 777 123 45 67",
-        //   email: "email@mail.kz"
-        // }
-        // {
-        //   id: 2,
-        //   code: "2020050301323",
-        //   fio: "Потапов Даниил",
-        //   post: "Менеджер",
-        //   phone: "+ 7 777 123 45 67",
-        //   email: "email@mail.kz"
-        // },
-        // {
-        //   id: 3,
-        //   code: "2020050301323",
-        //   fio: "Потапов Даниил",
-        //   post: "Менеджер",
-        //   phone: "+ 7 777 123 45 67",
-        //   email: "email@mail.kz"
-        // },
-        // {
-        //   id: 4,
-        //   code: "2020050301323",
-        //   fio: "Потапов Даниил",
-        //   post: "Менеджер",
-        //   phone: "+ 7 777 123 45 67",
-        //   email: "email@mail.kz"
-        // },
-        // {
-        //   id: 5,
-        //   code: "2020050301323",
-        //   fio: "Потапов Даниил",
-        //   post: "Менеджер",
-        //   phone: "+ 7 777 123 45 67",
-        //   email: "email@mail.kz"
-        // },
-        // {
-        //   id: 6,
-        //   code: "2020050301323",
-        //   fio: "Потапов Даниил",
-        //   post: "Менеджер",
-        //   phone: "+ 7 777 123 45 67",
-        //   email: "email@mail.kz"
-        // },
-        // {
-        //   id: 7,
-        //   code: "2020050301323",
-        //   fio: "Потапов Даниил",
-        //   post: "Менеджер",
-        //   phone: "+ 7 777 123 45 67",
-        //   email: "email@mail.kz"
-        // },
-        // {
-        //   id: 8,
-        //   code: "2020050301323",
-        //   fio: "Потапов Даниил",
-        //   post: "Менеджер",
-        //   phone: "+ 7 777 123 45 67",
-        //   email: "email@mail.kz"
-        // }
-      ],
+      users: [],
       popup: false,
       popup_id: 0,
       popup_content: [
@@ -278,7 +213,6 @@ export default {
   methods: {
     sendUser() {
       this.popup = false
-      console.log(this.popup_content[1].value)
       this.$axios
         .get(
           `/${this.popup_id ? "n_update" : "n_addUset"}/1111111111/${

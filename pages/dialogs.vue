@@ -12,13 +12,16 @@
               class="rounded-5 p-3 bg-opacity-25 cursor-pointer relative z-10"
               style="min-height:50px; width: 200px; display: inline-table"
               :options="canals"
+              :searchable="false"
               :close-on-select="false"
-              deselect-label="Канал не найден"
-              placeholder="Фильтр каналов"
-              :multiple="true"
+              select-label=""
+              label="title"
+              selected-label=""
+              deselect-label=""
+              placeholder="Выберите Канал"
               :taggable="true"
-            ></multiselect>
-            <multiselect
+            />
+            <!-- <multiselect
               v-model="tag"
               class="rounded-5 p-3 bg-opacity-25 cursor-pointer relative z-10"
               style="min-height:50px; width: 200px; display: inline-table"
@@ -28,7 +31,7 @@
               placeholder="Фильтр тегов"
               :multiple="true"
               :taggable="true"
-            ></multiselect>
+            ></multiselect> -->
           </div>
           <div class="relative flex items-center input">
             <svg
@@ -51,6 +54,7 @@
               </g>
             </svg>
             <input
+              v-model="search"
               class="bg-C4 bg-opacity-10 mr-24 rounded-full pl-15 pr-8 py-6 outline-none w-full"
               type="text"
               placeholder="Поиск ..."
@@ -60,12 +64,14 @@
         <table class="mt-4">
           <thead>
             <tr>
-              <td><div>Последний оператор и канал</div></td>
+              <td><div>Последний оператор</div></td>
               <td><div>Клиент</div></td>
-              <td><div>Телефон и мессенджер</div></td>
+              <td><div>Мессенджер</div></td>
               <td><div>Последнее сообщение</div></td>
-              <td><div>Теги клиента</div></td>
-              <td><div class="sort">Последнее сообщение</div></td>
+              <!-- <td><div>Теги клиента</div></td> -->
+              <td>
+                <div class="sort">Последнее сообщение</div>
+              </td>
               <td><div class="sort">Первое сообщение</div></td>
               <!-- <td><div>Вложение</div></td> -->
               <td></td>
@@ -75,7 +81,7 @@
             <template v-for="user in users">
               <tr :key="user.id">
                 <td>
-                  <div>{{ user.operator }}</div>
+                  <div>{{ user.manager.full_name }}</div>
                 </td>
                 <td style="max-width: 125px">
                   <div class="flex flex-row">
@@ -90,36 +96,53 @@
                       />
                     </svg>
 
-                    <span class="truncate" :title="user.fio">{{
-                      user.fio
-                    }}</span>
+                    <span
+                      class="truncate"
+                      :title="user.name ? user.name : user.phone"
+                    >
+                      {{ user.name ? user.name : user.phone }}
+                    </span>
                   </div>
                 </td>
                 <td>
                   <div class="flex justify-center">
-                    <img :src="user.messanger + '.svg'" />
+                    <img :src="user.from + '.svg'" />
                   </div>
                 </td>
                 <td style="max-width: 250px">
-                  <div class="truncate pr-4" :title="user.message">
-                    {{ user.message }}
-                  </div>
+                  <div
+                    class="truncate pr-4"
+                    :title="user.messages[user.messages.length - 1].content"
+                    v-html="user.messages[user.messages.length - 1].content"
+                  ></div>
                 </td>
-                <td>
+                <!-- <td>
                   <div>
                     <span v-for="(tag, i) in user.tags" :key="i">{{
                       tag + (i === user.tags.length - 1 ? "" : ", ")
                     }}</span>
                   </div>
-                </td>
+                </td> -->
                 <td>
                   <div>
-                    {{ $moment(user.end).format(checkFormat(user.end)) }}
+                    {{
+                      $moment(
+                        user.messages[user.messages.length - 1].date
+                      ).format(
+                        checkFormat(
+                          user.messages[user.messages.length - 1].date
+                        )
+                      )
+                    }}
                   </div>
                 </td>
                 <td>
                   <div>
-                    {{ $moment(user.first).format(checkFormat(user.first)) }}
+                    {{
+                      $moment(user.messages[0].date).format(
+                        checkFormat(user.messages[0].date)
+                      )
+                    }}
                   </div>
                 </td>
                 <!-- <td>
@@ -127,7 +150,7 @@
                 </td> -->
                 <td class="flex justify-end">
                   <v-button
-                    class="whitespace-no-wrap mr-2"
+                    class="whitespace-no-wrap justify-center mr-2"
                     title="Открыть чат"
                     @click="
                       $router.push({
@@ -137,7 +160,7 @@
                     "
                   />
                   <v-button
-                    class="whitespace-no-wrap ml-2"
+                    class="whitespace-no-wrap justify-center ml-2"
                     title="Назначить на .."
                   />
                 </td>
@@ -147,7 +170,10 @@
           <tfoot>
             <tr>
               <td colspan="9">
-                <pagination v-model="current_page" :max="10" />
+                <pagination
+                  v-model="current_page"
+                  :max="Math.ceil(users.length / 7)"
+                />
               </td>
             </tr>
           </tfoot>
@@ -174,78 +200,21 @@ export default {
   data() {
     return {
       current_page: 1,
-      tag: [],
-      tags: ["12323132132321", 321, 412, 421, 32],
-      canal: [],
-      canals: ["1канал", "2канал", "3канал"],
-      users: [
+      // tag: [],
+      // tags: ["12323132132321", 321, 412, 421, 32],
+      canal: null,
+      search: "",
+      canals: [
         {
-          id: 1,
-          operator: "Айгерим Алетова",
-          fio: "Потапов Даниил",
-          messanger: "tg",
-          message: "12123211212321121232112123211212321121232112123211212321",
-          tags: ["Тэг"],
-          files: [],
-          first: new Date(new Date().setDate(new Date().getDate() - 2)),
-          end: new Date(new Date().setHours(10, 10, 10))
+          id: "tg",
+          title: "Телеграм"
         },
         {
-          id: 2,
-          operator: "Айгерим Алетова",
-          fio: "Потапов Даниил",
-          messanger: "wp",
-          message: "1212321121232112123211212321",
-          tags: [],
-          files: [],
-          first: new Date(new Date().setDate(new Date().getDate() - 2)),
-          end: new Date(new Date().setHours(10, 10, 10))
-        },
-        {
-          id: 3,
-          operator: "Айгерим Алетова",
-          fio: "Потапов Даниил",
-          messanger: "wp",
-          message: "1212321121232112123211212321",
-          tags: [],
-          files: [],
-          first: new Date(new Date().setDate(new Date().getDate() - 2)),
-          end: new Date(new Date().setHours(10, 10, 10))
-        },
-        {
-          id: 4,
-          operator: "Айгерим Алетова",
-          fio: "Потапов Даниил",
-          messanger: "wp",
-          message: "1212321121232112123211212321",
-          tags: [],
-          files: [],
-          first: new Date(new Date().setDate(new Date().getDate() - 2)),
-          end: new Date(new Date().setHours(10, 10, 10))
-        },
-        {
-          id: 5,
-          operator: "Айгерим Алетова",
-          fio: "Потапов Даниил",
-          messanger: "wp",
-          message: "1212321121232112123211212321",
-          tags: [],
-          files: [],
-          first: new Date(new Date().setDate(new Date().getDate() - 2)),
-          end: new Date(new Date().setHours(10, 10, 10))
-        },
-        {
-          id: 6,
-          operator: "Айгерим Алетова",
-          fio: "Потапов Даниил",
-          messanger: "wp",
-          message: "1212321121232112123211212321",
-          tags: [],
-          files: [],
-          first: new Date(new Date().setDate(new Date().getDate() - 2)),
-          end: new Date(new Date().setHours(10, 10, 10))
+          id: "wp",
+          title: "WhatsApp"
         }
       ],
+      users: [],
       popup: false,
       popup_content: [
         {
@@ -285,7 +254,52 @@ export default {
       ]
     }
   },
+  watch: {
+    search() {
+      this.getClients()
+    },
+    canal() {
+      this.getClients()
+    }
+  },
+  created() {
+    this.getClients()
+  },
   methods: {
+    getClients() {
+      let data = {
+        find: this.search,
+        from: this.canal && this.canal.id ? this.canal.id : "",
+        page: (this.current_page - 1) * 7,
+        user_id:
+          JSON.parse(localStorage.getItem("auth")).is_admin == 1
+            ? 0
+            : JSON.parse(localStorage.getItem("auth")).id
+      }
+      this.$axios
+        .post("/ClientsList/123123123/", this.changeData(data))
+        .then(res => {
+          // {
+          //   id: 1,
+          //   operator: "Айгерим Алетова",
+          //   fio: "Потапов Даниил",
+          //   messanger: "tg",
+          //   message: "12123211212321121232112123211212321121232112123211212321",
+          //   tags: ["Тэг"],
+          //   files: [],
+          //   first: new Date(new Date().setDate(new Date().getDate() - 2)),
+          //   end: new Date(new Date().setHours(10, 10, 10))
+          // },
+          this.users = res.data.map(x => {
+            return {
+              ...x,
+              messages: JSON.parse(x.messages),
+              manager: JSON.parse(x.manager)
+            }
+          })
+          console.log(this.users[0])
+        })
+    },
     checkFormat(date) {
       return this.$moment(date).format("YY.MM.DD") !==
         this.$moment(new Date()).format("YY.MM.DD")
@@ -295,6 +309,13 @@ export default {
     changeUser(user) {
       this.popup = true
       console.log(user)
+    },
+    changeData(data) {
+      let formData = new FormData()
+      Object.keys(data).forEach(key => {
+        formData.append(key, data[key])
+      })
+      return formData
     }
   }
 }
@@ -325,7 +346,7 @@ table {
         &.sort {
           color: #008fa0;
           &:after {
-            content: "";
+            // content: "";
             display: block;
             left: 20px;
             transform: translateY(8px);

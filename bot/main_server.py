@@ -447,33 +447,53 @@ def n_tags (access_code):
 
 
 @app.route('/ClientsList/<access_code>/', methods=['POST'])
-def myClientsList (access_code,user_id):
+def ClientsList (access_code):
     import iz_func    
     import json
     db,cursor = iz_func.connect ()
     list = []
-    request.form['sort_by']
-    request.form['sort_type']
-    request.form['from']
-    request.form['tags']
-    if(request.form['user_id'] != 0):
-        sql = """SELECT id, from ,name,phone,user_id FROM n_clients 
-            WHERE user_id = {} 
-            LIMIT 7 OFFSET {}""".format(request.form['user_id'], request.form['page'])
-    else
-        sql = """SELECT id, from ,name,phone,user_id FROM n_clients 
-            LIMIT 7 OFFSET {}""".format(request.form['page'])
+    _from = "'tg' OR c.from = 'wp'"
+    if request.form['from'] :
+        _from = request.form['from']
+    sql = {}
+    if request.form['user_id'] != '0' :
+        sql = """SELECT c.id, c.name, c.phone, c.from,
+                JSON_OBJECT('id', u.id, 'full_name', u.full_name) as manager,
+                JSON_ARRAYAGG(JSON_OBJECT('content', m.content, 'date', m.date)) AS messages
+                FROM n_clients c
+                JOIN n_messages m ON (m.user_id = c.id AND m.from = 'client')
+                JOIN n_users u on u.id = c.user_id
+                WHERE c.user_id = {}
+                AND (c.name LIKE '%{}%' OR c.phone LIKE '%{}%')
+                AND (c.from = {})
+                GROUP BY c.id
+                LIMIT 7 OFFSET {}
+                """.format(request.form['user_id'],request.form['find'], request.form['find'], _from, request.form['page'])
+    else :
+        sql = """SELECT c.id, c.name, c.phone, c.from,
+                JSON_OBJECT('id', u.id, 'full_name', u.full_name) as manager,
+                JSON_ARRAYAGG(JSON_OBJECT('content', m.content, 'date', m.date)) AS messages
+                FROM n_clients c
+                JOIN n_messages m ON (m.user_id = c.id AND m.from = 'client')
+                JOIN n_users u on u.id = c.user_id
+                WHERE (c.from = {})
+                AND (c.name LIKE '%{}%' OR c.phone LIKE '%{}%')
+                GROUP BY c.id
+                LIMIT 7 OFFSET {}
+                """.format(_from,request.form['find'], request.form['find'], request.form['page'])
+
     print ('[sql10] :',sql)
     cursor.execute(sql)
     results2 = cursor.fetchall()        
     for row2 in results2:    
-        id,_from,name,phone,user_id = row2
+        id,name,phone,_from,manager,messages = row2
         list.append ({
             'id':id,
             'from': _from,
             'name': name,
             'phone': phone,
-            'user_id': user_id
+            'manager': manager,
+            'messages': messages
             }) 
     answer = json.dumps(list)    
     return answer
@@ -518,7 +538,7 @@ def n_requests (access_code):
     list = []
     
     if(request.form['checked'] != ''):
-        sql = """SELECT r.id, r.date, r.status, r.checked, r.client_id, c.name, c.phone, c.from as from,
+        sql = """SELECT r.id, r.date, r.status, r.checked, r.client_id, c.name, c.phone, c.from as _from,
             JSON_OBJECT('id', u.id, 'full_name', u.full_name) as manager,
             JSON_ARRAYAGG(JSON_OBJECT('title', rc.title, 'value', rc.answer)) AS answers
             FROM n_requests r 
@@ -540,7 +560,7 @@ def n_requests (access_code):
                 request.form['page']
                 )
     else:
-        sql = """SELECT r.id, r.date, r.status, r.checked, r.client_id, c.name, c.phone, c.from as from,
+        sql = """SELECT r.id, r.date, r.status, r.checked, r.client_id, c.name, c.phone, c.from as _from,
             JSON_OBJECT('id', u.id, 'full_name', u.full_name) as manager,
             JSON_ARRAYAGG(JSON_OBJECT('title', rc.title, 'value', rc.answer)) AS answers
             FROM n_requests r 
@@ -625,31 +645,87 @@ def n_update_requestStatus (access_code,id,status):
 
 
 
-@app.route('/n_messagesList/<access_code>/<sort_by>/<sort_type>/<limit>/<offset>/')
-def n_messagesList (access_code,sort_by,sort_type,limit,offset):
+@app.route('/n_messagesList/<access_code>/', methods=['POST'])
+def n_messagesList (access_code):
     import iz_func    
     import json
     db,cursor = iz_func.connect ()
     list = []
-    sql = "select id,content,user_id from n_messages where 1=1 ORDER BY "+str(sort_by)+" "+str(sort_type)+" limit "+str(limit)+" offset "+str(offset)+""
-    print ('[sql14] :',sql)
+    sql = {}
+
+    if request.form['last'] == '0' :
+        sql = """SELECT id, content, m.date, m.from 
+                FROM n_messages m
+                WHERE m.user_id = {}
+                ORDER BY m.id DESC
+                LIMIT 20 OFFSET {}
+        """.format(request.form['user_id'], request.form['page'])
+    else :
+        sql = """SELECT id, content, m.date, m.from 
+                FROM n_messages m
+                WHERE m.user_id = {}
+                AND m.id > {}
+        """.format(request.form['user_id'], request.form['last'])
+
     cursor.execute(sql)
-    results2 = cursor.fetchall()        
-    for row2 in results2:    
-        id,content,user_id = row2
-        list.append ([id,content,user_id]) 
-    answer = json.dumps(list)    
+    results = cursor.fetchall()        
+    for row2 in results:    
+        id,content,date,_from = row2
+        if _from == 'client' :
+            sql = """SELECT c.id, c.name, c.phone
+                    FROM n_clients c
+                    WHERE c.id = {}
+                    LIMIT 1
+            """.format(request.form['user_id'])
+            cursor.execute(sql)
+            results2 = cursor.fetchall() 
+            list.append ({
+                'id': id,
+                'content': content,
+                'date': date,
+                'from': _from,
+                'user': {
+                    'id': results2[0][0],
+                    'name': results2[0][1],
+                    'phone': results2[0][2],
+                }
+            })
+        elif _from != 'bot' :
+            sql = """SELECT c.id, c.full_name
+                    FROM n_users u
+                    WHERE u.id = {}
+                    LIMIT 1
+            """.format(_from)
+            cursor.execute(sql)
+            results2 = cursor.fetchall() 
+            list.append ({
+                'id': id,
+                'content': content,
+                'date': date,
+                'from': _from,
+                'user': {
+                    'id': results2[0][0],
+                    'name': results2[0][1],
+                }
+            })
+        else :
+            list.append ({
+                'id': id,
+                'content': content,
+                'date': date,
+                'from': _from,
+                'user': {
+                    'id': 0,
+                    'name': 'bot',
+                }
+            }) 
+    def myconverter(o):
+        if isinstance(o, datetime.datetime):
+            return o.__str__()
+    
+    answer = json.dumps(list, default = myconverter)    
     #answer = "Отказано в доступе ..."
     return answer
-
-
-
-
-
-
-
-
-
 
 
 

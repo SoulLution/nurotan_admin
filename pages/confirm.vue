@@ -131,7 +131,7 @@
                 </td>
                 <td class="flex justify-end">
                   <v-button
-                    class="whitespace-no-wrap mr-2"
+                    class="whitespace-no-wrap justify-center mr-2"
                     title="Открыть чат"
                     @click="
                       $router.push({
@@ -141,7 +141,7 @@
                     "
                   />
                   <v-button
-                    class="whitespace-no-wrap ml-2"
+                    class="whitespace-no-wrap justify-center ml-2"
                     title="Подтвердить"
                     @click="changeUser(i)"
                   />
@@ -290,7 +290,7 @@ export default {
                 0
               )
         ).format("YYYY-MM-DD"),
-        page: this.current_page - 1
+        page: (this.current_page - 1) * 7
       }
       data = this.changeData(data)
       this.$axios.post(`/n_requests/1111111111/`, data).then(res => {
@@ -395,6 +395,7 @@ table {
   top: 0;
   right: 1rem;
   border-radius: 5px;
-  width: auto;
+  min-width: 12px;
+  max-width: 12px;
 }
 </style>
