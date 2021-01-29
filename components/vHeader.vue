@@ -1,22 +1,28 @@
 <template>
-  <header class="head flex flex-row justify-between bg-white pl-22 pr-6">
+  <header
+    class="head flex flex-col sm:flex-row items-center justify-between bg-white px-0 sm:pl-22 sm:pr-6"
+  >
     <router-link to="/" class="flex flex-row items-center">
       <img src="nur_otan.png" />
     </router-link>
     <nav class="flex flex-row items-center">
-      <router-link v-if="checkOnAdmin" class="px-4 py-8" to="/">
+      <router-link v-if="checkOnAdmin" class="hidden sm:block px-4 py-8" to="/">
         Конструктор диалогов
       </router-link>
-      <router-link v-if="checkOnAdmin" class="px-4 py-8" to="/workers">
+      <router-link
+        v-if="checkOnAdmin"
+        class="hidden sm:block px-4 py-8"
+        to="/workers"
+      >
         Администрация
       </router-link>
-      <router-link class="px-4 py-8" to="/confirm">
+      <router-link class="px-4 py-4 sm:py-8" to="/confirm">
         Заявки
       </router-link>
-      <router-link class="px-4 py-8" to="/dialogs">Чат</router-link>
+      <router-link class="px-4 py-4 sm:py-8" to="/dialogs">Чат</router-link>
     </nav>
     <div
-      class="flex flex-row items-center relative"
+      class="hidden sm:flex flex-row items-center relative"
       @mousemove="menu = true"
       @mouseleave="menu = false"
     >
@@ -130,6 +136,23 @@ export default {
     &.fade-settings-enter,
     &.fade-settings-leave-to {
       max-height: 0%;
+    }
+  }
+}
+@media (max-width: 639px) {
+  .head {
+    position: sticky;
+    top: -70px;
+    z-index: 50;
+    & nav {
+      width: 100%;
+      & > a {
+        min-width: 50%;
+        color: #838383;
+        &.nuxt-link-exact-active {
+          color: #008fa0;
+        }
+      }
     }
   }
 }

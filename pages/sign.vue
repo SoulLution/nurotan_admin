@@ -7,7 +7,7 @@
           ВХОД В УЧЕТНУЮ ЗАПИСЬ
         </h2>
       </div>
-      <form class="flex flex-col pt-13 px" @submit.prevent="sendData()">
+      <form class="flex flex-col pt-4 sm:pt-13 px" @submit.prevent="sendData()">
         <span
           v-if="error"
           class="text-red text-lg font-semibold w-full text-center"
@@ -34,12 +34,14 @@
           type="password"
           :required="true"
         />
-        <div class="flex flex-row items-center justify-start">
-          <button class="rounded-md bg-cyan text-white font-bold py-7">
+        <div class="flex flex-col sm:flex-row items-center justify-start">
+          <button
+            class="rounded-md w-full sm:w-auto bg-cyan text-white font-bold py-7"
+          >
             Войти
           </button>
           <span
-            class="remove ml-14 pb-2 cursor-pointer font-bold text-gray-300 hover:text-red border-b border-gray-300 hover:border-red"
+            class="remove px-4 sm:px-0 mt-4 sm:mt-0 text-center sm:ml-14 pb-2 cursor-pointer font-bold text-gray-300 hover:text-red border-b border-gray-300 hover:border-red"
           >
             Сбросить пароль
           </span>
@@ -102,6 +104,17 @@ button {
   border-bottom: 1px dashed #9a9a9a50;
   &:hover {
     border-color: #d42d11;
+  }
+}
+@media (max-width: 639px) {
+  .sign {
+    & > .content {
+      & > div,
+      & > form {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+    }
   }
 }
 </style>

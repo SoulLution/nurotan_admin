@@ -2,19 +2,19 @@
   <transition name="fade-bottom-popup">
     <div
       v-if="popup"
-      class="flex manager-popup flex-col rounded-t-30 bg-white fixed bottom-0 left-0 w-full"
+      class="flex manager-popup flex-col rounded-t-30 bg-white fixed bottom-0 left-0 w-full z-10"
     >
       <div class="flex flex-row justify-between py-4 px-8 border-b">
         <h2 class="text-cyan font-bold">{{ title }}</h2>
         <close @click="$emit('close', false)" />
       </div>
-      <div class="flex flex-row flex-wrap w-full pt-4 pb-8 px-8">
-        <div class="w-1/4 pr-7 mt-3">
+      <div class="flex flex-col sm:flex-row flex-wrap w-full pt-4 pb-8 px-8">
+        <div class="w-full sm:w-1/4 sm:pr-7 sm:mt-3">
           <span class="font-bold opacity-0">Выбрать мэнеджера</span>
           <multiselect
             v-model="manager"
-            class="rounded-5 p-3 bg-opacity-25 py-2 cursor-pointer relative z-10"
-            style="min-height:50px; width: 200px; display: inline-table"
+            class="rounded-5 sm:p-3 bg-opacity-25 py-2 cursor-pointer relative z-10 w-200"
+            style="min-height:50px; display: inline-table"
             :options="list"
             :searchable="true"
             :close-on-select="false"
@@ -26,10 +26,10 @@
             :taggable="true"
           />
         </div>
-        <div class="w-1/4 mt-3 pr-7">
+        <div class="w-full sm:w-1/4 sm:mt-3 sm:pr-7">
           <span class="font-bold opacity-0">Добавить</span>
           <v-button
-            class="w-full mt-3 justify-center"
+            class="w-full sm:mt-3 justify-center"
             style="height: 50px"
             :title="button"
             @click="$emit('close', manager)"
@@ -98,6 +98,14 @@ export default {
   padding-right: 30px;
   &:nth-child(2n) {
     margin-top: 42px;
+  }
+}
+.w200 {
+  width: 200px;
+}
+@media (max-width: 639px) {
+  .w200 {
+    width: 100%;
   }
 }
 </style>

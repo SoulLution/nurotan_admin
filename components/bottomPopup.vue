@@ -8,11 +8,11 @@
         <h2 class="text-cyan font-bold">{{ title }}</h2>
         <close @click="$emit('close', false)" />
       </div>
-      <div class="flex flex-row flex-wrap w-full pt-4 pb-8 px-8">
+      <div class="flex flex-col sm:flex-row flex-wrap w-full pt-4 pb-8 px-8">
         <template v-for="(item, i) in childs">
           <div
             :key="i"
-            class="w-1/4 pr-7"
+            class="w-full sm:w-1/4 sm:pr-7"
             :class="{ 'mt-3': i > 3 || childs.length <= 4 }"
           >
             <div v-if="item.component" class="flex flex-col">
@@ -28,10 +28,10 @@
             </div>
           </div>
         </template>
-        <div class="w-1/4 mt-3 pr-7">
+        <div class="w-full sm:w-1/4 mt-3 sm:pr-7">
           <span class="font-bold opacity-0">Добавить</span>
           <v-button
-            class="w-full mt-3 justify-center"
+            class="w-full sm:mt-3 justify-center"
             style="height: 50px"
             :title="button"
             @click="$emit('close', true)"

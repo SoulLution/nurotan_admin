@@ -27,6 +27,7 @@
           </svg>
 
           <input
+            v-model="search"
             class="bg-C4 bg-opacity-10 mr-24 rounded-full pl-15 pr-8 py-6 outline-none w-full"
             type="text"
             placeholder="Поиск ..."
@@ -89,32 +90,44 @@
             <td></td>
           </tr>
         </thead>
-        <tbody v-if="users.length">
+        <tbody v-if="validateUsers.length">
           <template v-for="user in 7">
             <tr
-              v-if="users[user + (current_page - 1) * 7 - 1]"
-              :key="users[user + (current_page - 1) * 7 - 1].id"
+              v-if="validateUsers[user + (current_page - 1) * 7 - 1]"
+              :key="validateUsers[user + (current_page - 1) * 7 - 1].id"
             >
               <td>
-                <div>#{{ users[user + (current_page - 1) * 7 - 1].code }}</div>
-              </td>
-              <td>
                 <div>
-                  {{ users[user + (current_page - 1) * 7 - 1].full_name }}
+                  #{{ validateUsers[user + (current_page - 1) * 7 - 1].code }}
                 </div>
               </td>
               <td>
-                <div>{{ users[user + (current_page - 1) * 7 - 1].post }}</div>
+                <div>
+                  {{
+                    validateUsers[user + (current_page - 1) * 7 - 1].full_name
+                  }}
+                </div>
               </td>
               <td>
-                <div>{{ users[user + (current_page - 1) * 7 - 1].phone }}</div>
+                <div>
+                  {{ validateUsers[user + (current_page - 1) * 7 - 1].post }}
+                </div>
               </td>
               <td>
-                <div>{{ users[user + (current_page - 1) * 7 - 1].email }}</div>
+                <div>
+                  {{ validateUsers[user + (current_page - 1) * 7 - 1].phone }}
+                </div>
+              </td>
+              <td>
+                <div>
+                  {{ validateUsers[user + (current_page - 1) * 7 - 1].email }}
+                </div>
               </td>
               <td class="flex justify-end">
                 <pencil
-                  @click="changeUser(users[user + (current_page - 1) * 7 - 1])"
+                  @click="
+                    changeUser(validateUsers[user + (current_page - 1) * 7 - 1])
+                  "
                 />
                 <delete
                   class="text-white border-red bg-red"
@@ -129,7 +142,7 @@
             <td colspan="6">
               <pagination
                 v-model="current_page"
-                :max="Math.ceil(users.length / 7)"
+                :max="Math.ceil(validateUsers.length / 7)"
               />
             </td>
           </tr>
@@ -157,6 +170,7 @@ export default {
       users: [],
       popup: false,
       popup_id: 0,
+      search: "",
       popup_content: [
         {
           title: "Ф.И.О.",
@@ -197,6 +211,21 @@ export default {
         value: "id",
         type: "asc"
       }
+    }
+  },
+  computed: {
+    validateUsers() {
+      return this.users.filter(x => {
+        console.log(x)
+        if (
+          x &&
+          (x.full_name.toLocaleLowerCase().indexOf(this.search) !== -1 ||
+            x.full_name.indexOf(this.search) !== -1 ||
+            x.email.toLocaleLowerCase().indexOf(this.search) !== -1 ||
+            x.phone.indexOf(this.search) !== -1)
+        )
+          return true
+      })
     }
   },
   watch: {
@@ -276,7 +305,7 @@ export default {
               return {
                 ...x,
                 code: (x.id + "").padStart(13, 0),
-                post: x.is_admin ? "Администратор" : "Менеджер"
+                post: x.is_admin == 1 ? "Администратор" : "Менеджер"
               }
           })
         })

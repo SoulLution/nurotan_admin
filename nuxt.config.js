@@ -1,13 +1,12 @@
 export default {
-  ssr: false,
   server: {
-    port: 3000, // default: 3000
-    host: "localhost" // default: localhost
-    // host: "185.22.64.75" // default: localhost
+    // host: "91.201.215.4", // default: localhost
+    port: 8779 // default: 3000
   },
   // Global page headers (https://go.nuxtjs.dev/config-head)
+  ssr: false,
   head: {
-    title: "Admin",
+    title: "РС",
     meta: [
       { charset: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -48,6 +47,8 @@ export default {
   // Axios module configuration (https://go.nuxtjs.dev/config-axios)
   axios: {
     baseURL: "http://185.22.64.75:3143/"
+    // credentials: true,
+    // withCredentials: true
   },
 
   // Build Configuration (https://go.nuxtjs.dev/config-build)

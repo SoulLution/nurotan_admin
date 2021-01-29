@@ -1,0 +1,16 @@
+POST http://185.22.64.75:3143/documentolog/changeStatus/<documentolog_id>/
+JSON
+{
+"type": "String" ['1','2','3','4'],
+"ot_kogo": "String",
+"date_dostavki": "String",
+"reg_number": "String",
+"date_regist": "String",
+"ispolnitel": "String",
+"phone_ispolnitel": "String",
+"date_fact": "String"
+}
+POST http://185.22.64.75:3143/documentolog/message/<documentolog_id>/
+JSON
+"message": "String"
+}

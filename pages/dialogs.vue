@@ -1,16 +1,16 @@
 <template>
-  <div class="pt-4 rounded-t-30 mt-15">
-    <div class="px-70px flex flex-col">
+  <div class="pt-4 rounded-t-30 sm:mt-15">
+    <div class="px-4 sm:px-70px flex flex-col">
       <h1 class="page-title text-cyan text-2xl font-bold">
         Все диалоги
       </h1>
-      <div class="flex flex-col py-10 mt-22 bg-white rounded-30">
-        <div class="flex flex-row justify-between w-full px-4">
-          <div class="flex flex-row">
+      <div class="flex flex-col sm:py-10 sm:mt-22 sm:bg-white rounded-30">
+        <div class="flex flex-col sm:flex-row justify-between w-full sm:px-4">
+          <div class="flex flex-col sm:flex-row">
             <multiselect
               v-model="canal"
-              class="rounded-5 p-3 bg-opacity-25 cursor-pointer relative z-10"
-              style="min-height:50px; width: 200px; display: inline-table"
+              class="rounded-5 sm:p-3 bg-opacity-25 cursor-pointer relative z-10 w200"
+              style="min-height:50px; display: inline-table"
               :options="canals"
               :searchable="false"
               :close-on-select="false"
@@ -21,17 +21,29 @@
               placeholder="Выберите Канал"
               :taggable="true"
             />
-            <!-- <multiselect
-              v-model="tag"
-              class="rounded-5 p-3 bg-opacity-25 cursor-pointer relative z-10"
-              style="min-height:50px; width: 200px; display: inline-table"
-              :options="tags"
-              :close-on-select="false"
-              deselect-label="Тэг не найден"
-              placeholder="Фильтр тегов"
-              :multiple="true"
-              :taggable="true"
-            ></multiselect> -->
+            <div
+              class="flex flex-col sm:p-3 sm:pb-5 sm:flex-row sm:items-center"
+            >
+              <button
+                class="rounded-md bg-cyan hover:bg-white w-full sm:w-auto hover:text-cyan border-cyan border px-6 text-white py-2"
+                @click="getClients()"
+              >
+                Применить
+              </button>
+              <span
+                class="block sm:hidden rounded-md bg-transparent my-2 hover:bg-white w-full text-cyan hover:text-cyan border-cyan border px-6 text-center py-2"
+                @click="removeToDefalut()"
+              >
+                Сбросить
+              </span>
+              <span
+                class="hidden sm:block remove ml-4 pb-1 cursor-pointer text-gray-300 hover:text-red border-b border-gray-300 hover:border-red"
+                style="height: 25px"
+                @click="removeToDefalut()"
+              >
+                Сбросить
+              </span>
+            </div>
           </div>
           <div class="relative flex items-center input">
             <svg
@@ -55,13 +67,13 @@
             </svg>
             <input
               v-model="search"
-              class="bg-C4 bg-opacity-10 mr-24 rounded-full pl-15 pr-8 py-6 outline-none w-full"
+              class="bg-white sm:bg-C4 sm:bg-opacity-10 sm:mr-24 rounded-full pl-15 pr-8 py-6 outline-none w-full"
               type="text"
               placeholder="Поиск ..."
             />
           </div>
         </div>
-        <table class="mt-4">
+        <table class="hidden sm:table mt-4">
           <thead>
             <tr>
               <td><div>Последний оператор</div></td>
@@ -171,14 +183,64 @@
           <tfoot>
             <tr>
               <td colspan="9">
-                <pagination
-                  v-model="current_page"
-                  :max="Math.ceil(users.length / 7)"
-                />
+                <pagination v-model="current_page" :max="pages" />
               </td>
             </tr>
           </tfoot>
         </table>
+        <div class="flex sm:hidden flex-col pr-3">
+          <pagination
+            v-if="pages > 1"
+            v-model="current_page"
+            class="mt-4"
+            :max="pages"
+          />
+          <template v-for="list in users">
+            <router-link
+              :key="list.id"
+              :to="'/chat?user_id=' + list.id"
+              class="chater bg-white pb-8 rounded-30 flex flex-row justify-between pl-11 pr-7 py-6 mt-3 cursor-pointer"
+            >
+              <div class="flex flex-row justify-start w-full overflow-hidden">
+                <div class="ava">
+                  <img src="user.svg" />
+                  <div class="absolute">
+                    <svg
+                      width="27"
+                      height="27"
+                      viewBox="0 0 27 27"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19.0646 14.1059C20.6561 12.6164 21.6581 10.5042 21.6581 8.15729C21.6581 3.65954 17.9985 0 13.5008 0C9.00305 0 5.34351 3.65954 5.34351 8.15729C5.34351 10.5042 6.34544 12.616 7.93658 14.1059C5.48175 16.2178 2.14648 19.116 2.14648 25.8049V27H24.8539V25.8049C24.8543 19.1164 21.5194 16.2178 19.0646 14.1059ZM7.7338 8.15769C7.7338 4.97779 10.3209 2.3907 13.5008 2.3907C16.6803 2.3907 19.2678 4.97779 19.2678 8.15769C19.2678 11.3376 16.6807 13.9251 13.5008 13.9251C10.3209 13.9247 7.7338 11.3376 7.7338 8.15769ZM4.57941 24.6097C4.92799 19.8462 7.36211 17.7523 9.52892 15.8887C9.59186 15.8341 9.65441 15.7807 9.71695 15.727C10.9037 16.2357 12.1961 16.5074 13.51 16.5174C14.8083 16.5074 16.0975 16.2357 17.2842 15.727C17.346 15.7807 17.4089 15.8345 17.4723 15.8887C19.6387 17.7523 22.0732 19.8462 22.4218 24.6097H4.57941Z"
+                        fill="black"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div class="flex flex-col justify-start items-start mt-2">
+                  <h4 class="font-bold mb-1">{{ list.name }}</h4>
+                  <span
+                    class="text-sm text-opacity-50 text-black"
+                    v-html="list.messages[list.messages.length - 1].content"
+                  ></span>
+                </div>
+              </div>
+              <div class="flex flex-col justify-start items-start">
+                <span class="status text-xs mb-4">
+                  {{
+                    $moment(
+                      list.messages[list.messages.length - 1].date
+                    ).format("HH:mm")
+                  }}
+                </span>
+                <img :src="list.from + '.svg'" />
+              </div>
+            </router-link>
+          </template>
+          <pagination v-model="current_page" class="mt-4" :max="pages" />
+        </div>
       </div>
     </div>
     <bottom-manager-popup
@@ -212,14 +274,18 @@ export default {
       ],
       users: [],
       current_user: null,
-      popup: false
+      popup: false,
+      pages: 1
     }
   },
   watch: {
     search() {
       this.getClients()
     },
-    canal() {
+    // canal() {
+    //   this.getClients()
+    // },
+    current_page() {
       this.getClients()
     }
   },
@@ -227,6 +293,11 @@ export default {
     this.getClients()
   },
   methods: {
+    removeToDefalut() {
+      this.canal = null
+      this.search = ""
+      this.getClients()
+    },
     changeManager(e) {
       if (e)
         this.$axios
@@ -249,7 +320,8 @@ export default {
       this.$axios
         .post("/ClientsList/123123123/", this.changeData(data))
         .then(res => {
-          this.users = res.data.map(x => {
+          this.pages = res.data.pages
+          this.users = JSON.parse(res.data.data).map(x => {
             return {
               ...x,
               messages: JSON.parse(x.messages),
@@ -330,6 +402,14 @@ table {
     border-top: 1px solid #00000015;
   }
 }
+.w200 {
+  width: 200px;
+}
+@media (max-width: 639px) {
+  .w200 {
+    width: 100%;
+  }
+}
 </style>
 <style lang="scss">
 .multiselect__select {
@@ -343,5 +423,74 @@ table {
 }
 .multiselect__input {
   background: transparent;
+}
+
+.chater {
+  position: relative;
+  &:before {
+    content: "";
+    display: block;
+    position: absolute;
+    background-color: #d42d11;
+    border-radius: 50px;
+    height: calc(100% - 3rem);
+    width: 5px;
+    margin-left: -1rem;
+  }
+  & .ava {
+    min-width: 45px;
+    max-width: 45px;
+    min-height: 45px;
+    max-height: 45px;
+    background: #008fa0;
+    border-radius: 50%;
+    margin-right: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    & > img {
+      width: 40%;
+    }
+    & > .absolute {
+      min-width: 27px;
+      max-width: 27px;
+      min-height: 27px;
+      max-height: 27px;
+      right: 0;
+      bottom: 0;
+      transform: translate(-5%, 25%);
+      background: #f9db3d;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      & > svg {
+        width: 40%;
+      }
+    }
+  }
+  & .status {
+    position: relative;
+    display: flex;
+    align-items: center;
+    &:after {
+      content: "";
+      position: absolute;
+      right: -12px;
+      background: #3ae141;
+      max-width: 6px;
+      max-height: 6px;
+      min-width: 6px;
+      min-height: 6px;
+      transition: 0.3s;
+      border-radius: 50%;
+      transform: scale(0);
+    }
+    &.active:after {
+      transform: scale(1);
+      box-shadow: 0 0 0 3px #3ae14140;
+    }
+  }
 }
 </style>

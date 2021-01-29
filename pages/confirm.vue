@@ -1,16 +1,18 @@
 <template>
-  <div class="pt-4 rounded-t-30 mt-15">
-    <div class="px-70px flex flex-col">
+  <div class="sm:pt-4 rounded-t-30 sm:mt-15">
+    <div class="px-4 sm:px-70px flex flex-col">
       <h1 class="page-title text-cyan text-2xl font-bold">
         Заявки
       </h1>
-      <div class="flex flex-col py-10 mt-22 bg-white rounded-30">
-        <div class="flex flex-row justify-between w-full px-4">
-          <div class="flex flex-row">
+      <div class="flex flex-col py-10 sm:mt-22 sm:bg-white sm:rounded-30">
+        <div
+          class="search-data flex flex-col-reverse sm:flex-row p-8 sm:p-0 bg-white rounded-30 sm:rounded-none sm:bg-transparent justify-between w-full px-4"
+        >
+          <div class="flex flex-col sm:flex-row">
             <multiselect
               v-model="status"
-              class="rounded-5 p-3 bg-opacity-25 cursor-pointer relative z-10"
-              style="min-height:50px; width: 200px; display: inline-table"
+              class="rounded-5 mt-4 sm:mt-0 sm:p-3 bg-opacity-25 cursor-pointer relative z-10 w200"
+              style="min-height:50px; ; display: inline-table"
               :options="statuses"
               :searchable="false"
               :close-on-select="false"
@@ -21,7 +23,9 @@
               placeholder="Выберите статус"
               :taggable="true"
             />
-            <div class="flex flex-row p-3 items-center" style="height: 60px">
+            <div
+              class="flex flex-col sm:flex-row sm:p-3 items-start sm:items-center"
+            >
               <span class="mr-4">Период</span>
               <template v-for="i in 2">
                 <date-pick
@@ -31,6 +35,7 @@
                   next-month-caption="Следующий"
                   prev-month-caption="Предыдущий"
                   set-time-caption="Выбрать"
+                  class="w-full sm:w-auto"
                   :weekdays="['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']"
                   :months="[
                     'Январь',
@@ -48,15 +53,24 @@
                   ]"
                 ></date-pick>
               </template>
-              <div class="flex flex-row items-center p-3" style="height: 60px">
+              <div
+                class="flex flex-row items-center sm:p-3"
+                style="height: 60px"
+              >
                 <button
-                  class="rounded-md bg-cyan hover:bg-white hover:text-cyan border-cyan border px-6 text-white py-2"
-                  @click="getUsers()"
+                  class="rounded-md bg-cyan hover:bg-white w-full sm:w-auto hover:text-cyan border-cyan border px-6 text-white py-2"
+                  @click="getUsers(true)"
                 >
                   Применить
                 </button>
                 <span
-                  class="remove ml-4 pb-1 cursor-pointer text-gray-300 hover:text-red border-b border-gray-300 hover:border-red"
+                  class="block sm:hidden rounded-md bg-transparent ml-2 hover:bg-white w-full text-cyan hover:text-cyan border-cyan border px-6 text-white py-2"
+                  @click="removeToDefalut()"
+                >
+                  Сбросить
+                </span>
+                <span
+                  class="hidden sm:block remove ml-4 pb-1 cursor-pointer text-gray-300 hover:text-red border-b border-gray-300 hover:border-red"
                   @click="removeToDefalut()"
                 >
                   Сбросить
@@ -86,13 +100,13 @@
             </svg>
             <input
               v-model="search"
-              class="bg-C4 bg-opacity-10 mr-12 rounded-full pl-15 pr-8 py-6 outline-none w-full"
+              class="bg-C4 bg-opacity-10 sm:mr-12 rounded-full pl-15 pr-8 py-6 outline-none w-full"
               type="text"
               placeholder="Поиск ..."
             />
           </div>
         </div>
-        <table class="mt-4">
+        <table class="hidden sm:table mt-4">
           <thead>
             <tr>
               <td><div>Ответственный менеджер</div></td>
@@ -158,11 +172,71 @@
             </tr>
           </tfoot>
         </table>
+        <div class="flex sm:hidden flex-col">
+          <pagination
+            v-if="all_pages > 1"
+            v-model="current_page"
+            :max="all_pages"
+            class="mt-4"
+          />
+          <template v-for="(user, i) in users">
+            <div
+              :key="user.id"
+              class="mob-item flex flex-col mt-4 border-b border-black border-opacity-10 py-4 text-sm items-center"
+              :class="{ active: show === i }"
+            >
+              <div
+                :class="{ active: show === i }"
+                class="mob-item-head flex flex-row items-center w-full p-7 rounded-30"
+                @click="show = i"
+              >
+                <img class="mr-4" :src="user.from + '.svg'" />
+                <div class="flex justify-between w-full">
+                  <span>{{ user.name }}</span>
+                  <span>{{ getStatusName(user.checked) }}</span>
+                </div>
+              </div>
+              <div class="flex flex-row justify-between w-full p-4">
+                <span>Мэнеджер:</span>
+                <span>{{ user.manager.full_name }}</span>
+              </div>
+              <div class="flex flex-row justify-between w-full p-4">
+                <span>Статус сообщения:</span>
+                <span>{{ getStatusName(user.checked) }}</span>
+              </div>
+              <div class="flex flex-row justify-between w-full p-4">
+                <span>Дата и время:</span>
+                <span>{{
+                  $moment(user.date).format("hh:mm / DD.MM.YYYY")
+                }}</span>
+              </div>
+              <v-button
+                class="whitespace-no-wrap w-4/5 text-xs justify-center mt-4"
+                title="Открыть чат"
+                @click="
+                  $router.push({
+                    path: '/chat',
+                    query: { user_id: user.client_id }
+                  })
+                "
+              />
+              <v-button
+                v-if="user.checked != 3"
+                class="whitespace-no-wrap w-4/5 text-xs justify-center mt-4"
+                title="Подтвердить"
+                @click="changeUser(i)"
+              />
+            </div>
+          </template>
+          <pagination v-model="current_page" class="mt-4" :max="all_pages" />
+        </div>
       </div>
     </div>
     <confirm-popup
       v-if="users.length && cur_user !== null"
       :popup="popup"
+      :field="kor_current"
+      :fields="kor_fields"
       :answers="users[cur_user].answers"
       @close="e => closeAndSendAnswer(e)"
     />
@@ -176,6 +250,9 @@ export default {
     return {
       current_page: 1,
       all_pages: 1,
+      kor_current: {},
+      kor_fields: [],
+      show: null,
       tag: [],
       search: "",
       tags: ["12323132132321", 321, 412, 421, 32],
@@ -216,24 +293,30 @@ export default {
   },
   created() {
     this.getUsers()
+    this.getFields(0)
   },
   methods: {
     closeAndSendAnswer(type) {
       if (type !== false) {
-        if (type === true)
+        if (type !== -1)
           this.$axios
-            .get(
+            .post(
               `n_update_requestChecked/123123123/${
                 this.users[this.cur_user].id
-              }/${3}/`
+              }/${3}/`,
+              this.changeData({
+                korrespondenty_id: type.id,
+                korrespondent: type.korrespondent
+              })
             )
             .then(() => {
+              this.kor_current = {}
               this.users[this.cur_user].checked = 3
             })
             .finally(() => (this.popup = false))
         else
           this.$axios
-            .get(
+            .post(
               `n_update_requestChecked/123123123/${
                 this.users[this.cur_user].id
               }/${2}/`
@@ -256,12 +339,22 @@ export default {
       this.getUsers()
     },
     changeUser(index) {
+      if (this.users[index].answers.find(x => x.title === "Район"))
+        this.getFields(
+          this.users[index].answers.find(x => x.title === "Район")
+            .documentolog_id
+        )
+      else if (this.users[index].answers.find(x => x.title === "Район города"))
+        this.getFields(
+          this.users[index].answers.find(x => x.title === "Район города")
+            .documentolog_id
+        )
       this.popup = true
       this.cur_user = index
-      console.log(this.users[index].checked)
+      console.log(this.users[index].id)
       if (this.users[index].checked === 0)
         this.$axios
-          .get(
+          .post(
             `n_update_requestChecked/123123123/${this.users[index].id}/${1}/`
           )
           .then(() => {
@@ -280,7 +373,9 @@ export default {
           return "Одобрен"
       }
     },
-    getUsers() {
+    getUsers(remove) {
+      if (remove) this.current_page = 1
+      this.show = null
       let data = {
         checked: this.status ? this.status.id.toString() : "",
         find: this.search,
@@ -309,6 +404,17 @@ export default {
         })
         this.all_pages = res.data.pages || 1
         this.cur_user = null
+      })
+    },
+    getFields(id) {
+      this.kor_current = {}
+      this.$axios.get(`/KorrespondentyFields/123123123/${id}/`).then(res => {
+        this.kor_fields = res.data.fields
+        console.log(this.kor_fields)
+        if (res.data.current)
+          this.kor_current = this.kor_fields.find(
+            x => x.id === res.data.current
+          )
       })
     },
     changeData(data) {
@@ -372,8 +478,40 @@ table {
     border-top: 1px solid #00000015;
   }
 }
+.w200 {
+  width: 200px;
+}
+@media (max-width: 639px) {
+  .search-data {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 15px 15px rgba(0, 0, 0, 0.07);
+  }
+  .w200 {
+    width: 100%;
+  }
+  .mob-item {
+    max-height: 105px;
+    overflow: hidden;
+    transition: 0.3s;
+    &.active {
+      max-height: 100vh;
+    }
+    & > .mob-item-head.active {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0px 15px 15px rgba(0, 0, 0, 0.07);
+    }
+  }
+}
 </style>
 <style lang="scss">
+@media (max-width: 639px) {
+  .vdpComponent.vdpWithInput > input {
+    width: 100%;
+    padding: 1rem 0;
+    background: transparent;
+  }
+}
 .multiselect__select {
   top: 11px;
   right: 4px;

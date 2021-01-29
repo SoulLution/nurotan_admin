@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 
 
 namebot = "@ask314_bot"    
-token = 'token'
+token = '1393957889:AAEy0SgED_mt0zooGfgsrUHsQvkoC_7THz0'
 bot   = telebot.TeleBot(token)
 print ('[+] Запуск бота:',namebot)
 
@@ -56,8 +56,18 @@ def welcome(message):
     sql = "UPDATE n_clients SET branch_id = '1' WHERE `id` = '"+str(user['id'])+"'"
     cursor.execute(sql)
     db.commit()
+    sql = """SET SESSION group_concat_max_len = 1000000"""
+    cursor.execute(sql)
+    
     sql = """SELECT b.id, b.title, b.answers_type,
-          JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers
+        CONCAT(
+        '[',
+            GROUP_CONCAT(
+                JSON_OBJECT('id',a.id,'content', a.content)
+                order by a.position
+            ),
+        ']'
+        ) answers 
           FROM n_branch b
           LEFT JOIN n_answers a ON  a.branch_id = b.id
           WHERE b.id = 1
@@ -118,8 +128,18 @@ def messageHandler(message):
         sql = "INSERT INTO n_messages (`content`,`from`,`user_id`) VALUES ('{}', 'client', '{}')".format(message.text, user['id'])
         cursor.execute(sql)
         db.commit()
+        sql = """SET SESSION group_concat_max_len = 1000000"""
+        cursor.execute(sql)
+    
         sql = """SELECT b.id, b.answers_type, b.to_branch,
-            JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'to_branch', a.to_branch,'content', a.content, 'tag_id',a.tag_id)) AS answers,
+            CONCAT(
+            '[',
+                GROUP_CONCAT(
+                    JSON_OBJECT('id', a.id, 'to_branch', a.to_branch,'content', a.content, 'tag_id',a.tag_id, 'documentolog_id',a.documentolog_id)
+                    order by a.position
+                ),
+            ']'
+            ) answers,
             b.is_request
             FROM n_branch b
             LEFT JOIN n_answers a ON  a.branch_id = b.id
@@ -136,10 +156,22 @@ def messageHandler(message):
             'answers': json.loads(results2[0][3]),
             'is_request': results2[0][4]
         }
+        cur_answer = {'id': 0}
+        item = {'is_request': 0}
         if current['answers_type'] == '2':
             if current['to_branch'] and current['to_branch'] != 'null' :
+                sql = """SET SESSION group_concat_max_len = 1000000"""
+                cursor.execute(sql)
+                    
                 sql = """SELECT b.id, b.title, b.answers_type,
-                    JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers,
+                    CONCAT(
+                    '[',
+                        GROUP_CONCAT(
+                            JSON_OBJECT('id', a.id, 'content', a.content)
+                            order by a.position
+                        ),
+                    ']'
+                    ) answers,
                     b.is_request
                     FROM n_branch b
                     LEFT JOIN n_answers a ON  a.branch_id = b.id
@@ -156,8 +188,18 @@ def messageHandler(message):
                     'is_request': results2[0][4]
                 }
             else:
+                sql = """SET SESSION group_concat_max_len = 1000000"""
+                cursor.execute(sql)
+                    
                 sql = """SELECT b.id, b.title, b.answers_type,
-                    JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers,
+                    CONCAT(
+                    '[',
+                        GROUP_CONCAT(
+                            JSON_OBJECT('id', a.id, 'content', a.content)
+                            order by a.position
+                        ),
+                    ']'
+                    ) answers,
                     b.is_request
                     FROM n_branch b
                     LEFT JOIN n_answers a ON  a.branch_id = b.id
@@ -173,6 +215,8 @@ def messageHandler(message):
                     'answers': json.loads(results2[0][3]),
                     'is_request': results2[0][4]
                 }
+            # if current['answers_type'] == '0' :
+            #     bot.edit_message_reply_markup(message.chat.id, message_id = message.message_id-1, reply_markup = '')
             if item['answers_type'] == '0' :
                 markup = types.InlineKeyboardMarkup(row_width=2)
                 for answer in item['answers']:      
@@ -202,10 +246,19 @@ def messageHandler(message):
         else:
             for answer in current['answers']: 
                 if message.text == replaceTextButton(answer['content']) :
-                    
+                    cur_answer = answer
                     if answer['to_branch'] and answer['to_branch'] != 'null' :
+                        sql = """SET SESSION group_concat_max_len = 1000000"""
+                        cursor.execute(sql)
                         sql = """SELECT b.id, b.title, b.answers_type,
-                            JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers,
+                            CONCAT(
+                            '[',
+                                GROUP_CONCAT(
+                                    JSON_OBJECT('id', a.id, 'content', a.content)
+                                    order by a.position
+                                ),
+                            ']'
+                            ) answers,
                             b.is_request
                             FROM n_branch b
                             LEFT JOIN n_answers a ON  a.branch_id = b.id
@@ -222,8 +275,18 @@ def messageHandler(message):
                             'is_request': results2[0][4]
                         }
                     else:
+                        sql = """SET SESSION group_concat_max_len = 1000000"""
+                        cursor.execute(sql)
+                            
                         sql = """SELECT b.id, b.title, b.answers_type,
-                            JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers,
+                            CONCAT(
+                            '[',
+                                GROUP_CONCAT(
+                                    JSON_OBJECT('id', a.id, 'content', a.content)
+                                    order by a.position
+                                ),
+                            ']'
+                            ) answers,
                             b.is_request
                             FROM n_branch b
                             LEFT JOIN n_answers a ON  a.branch_id = b.id
@@ -239,6 +302,8 @@ def messageHandler(message):
                             'answers': json.loads(results2[0][3]),
                             'is_request': results2[0][4]
                         }
+                    # if current['answers_type'] == '0' :
+                    #     bot.edit_message_reply_markup(message.chat.id, message_id = message.message_id-1, reply_markup = '')
                     if item['answers_type'] == '0' :
                         markup = types.InlineKeyboardMarkup(row_width=2)
                         for answer in item['answers']:    
@@ -298,11 +363,18 @@ def messageHandler(message):
                 sql = "UPDATE n_request_content SET branch_id = '{}' WHERE `id` = {}".format(current['id'], results[0][0])
                 cursor.execute(sql)
                 db.commit()
+                if(cur_answer['id']):
+                    sql = "UPDATE n_request_content SET documentolog_id = '{}' WHERE `id` = {}".format(cur_answer['documentolog_id'], results[0][0])
+                    cursor.execute(sql)
+                    db.commit()
             else :
-                sql = "INSERT INTO n_request_content (`request_id`,`title`,`answer`, `branch_id`) VALUES ('{}','{}','{}','{}')".format(request['id'], current['is_request'], replaceTextButton(message.text), current['id'])
+                if(cur_answer['id'] and cur_answer['documentolog_id']):
+                    sql = "INSERT INTO n_request_content (`request_id`,`title`,`answer`, `branch_id`, `documentolog_id`) VALUES ('{}','{}','{}','{}','{}')".format(request['id'], current['is_request'], replaceTextButton(message.text), current['id'], cur_answer['documentolog_id'])
+                else:
+                    sql = "INSERT INTO n_request_content (`request_id`,`title`,`answer`, `branch_id`) VALUES ('{}','{}','{}','{}')".format(request['id'], current['is_request'], replaceTextButton(message.text), current['id'])
                 cursor.execute(sql)
                 db.commit()
-        if item['is_request'] == 'undefined' :
+        if item['is_request'] and item['is_request'] == 'undefined' :
             sql = "SELECT id FROM n_requests WHERE client_id = '{}' AND status = '0'".format(user['id'])
             cursor.execute(sql)
             results = cursor.fetchall()
@@ -339,8 +411,18 @@ def callback_inline(call):
             'id': user[0][0],
             'branch_id': user[0][1]
         }
+        sql = """SET SESSION group_concat_max_len = 1000000"""
+        cursor.execute(sql)
+            
         sql = """SELECT b.id, b.answers_type, b.to_branch,
-            JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'to_branch', a.to_branch,'content', a.content, 'tag_id',a.tag_id)) AS answers,
+            CONCAT(
+            '[',
+                GROUP_CONCAT(
+                    JSON_OBJECT('id', a.id, 'to_branch', a.to_branch,'content', a.content, 'tag_id',a.tag_id,'documentolog_id',a.documentolog_id)
+                    order by a.position
+                ),
+            ']'
+            ) answers,
             b.is_request
             FROM n_branch b
             LEFT JOIN n_answers a ON  a.branch_id = b.id
@@ -359,8 +441,18 @@ def callback_inline(call):
         }
         if current['answers_type'] == '2':
             if current['to_branch'] and current['to_branch'] != 'null' :
+                sql = """SET SESSION group_concat_max_len = 1000000"""
+                cursor.execute(sql)
+                    
                 sql = """SELECT b.id, b.title, b.answers_type,
-                    JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers,
+                    CONCAT(
+                    '[',
+                        GROUP_CONCAT(
+                            JSON_OBJECT('id', a.id, 'content', a.content)
+                            order by a.position
+                        ),
+                    ']'
+                    ) answers,
                     b.is_request
                     FROM n_branch b
                     LEFT JOIN n_answers a ON  a.branch_id = b.id
@@ -377,8 +469,18 @@ def callback_inline(call):
                     'is_request': results2[0][4]
                 }
             else:
+                sql = """SET SESSION group_concat_max_len = 1000000"""
+                cursor.execute(sql)
+                    
                 sql = """SELECT b.id, b.title, b.answers_type,
-                    JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers,
+                    CONCAT(
+                    '[',
+                        GROUP_CONCAT(
+                            JSON_OBJECT('id', a.id, 'content', a.content)
+                            order by a.position
+                        ),
+                    ']'
+                    ) answers,
                     b.is_request
                     FROM n_branch b
                     LEFT JOIN n_answers a ON  a.branch_id = b.id
@@ -427,8 +529,18 @@ def callback_inline(call):
                     cursor.execute(sql)
                     db.commit()
                     if answer['to_branch'] and answer['to_branch'] != 'null' :
+                        sql = """SET SESSION group_concat_max_len = 1000000"""
+                        cursor.execute(sql)
+                            
                         sql = """SELECT b.id, b.title, b.answers_type,
-                            JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers,
+                            CONCAT(
+                            '[',
+                                GROUP_CONCAT(
+                                    JSON_OBJECT('id', a.id, 'content', a.content)
+                                    order by a.position
+                                ),
+                            ']'
+                            ) answers,
                             b.is_request
                             FROM n_branch b
                             LEFT JOIN n_answers a ON  a.branch_id = b.id
@@ -445,8 +557,17 @@ def callback_inline(call):
                             'is_request': results2[0][4]
                         }
                     else:
+                        sql = """SET SESSION group_concat_max_len = 1000000"""
+                        cursor.execute(sql)
+                            
                         sql = """SELECT b.id, b.title, b.answers_type,
-                            JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'content', a.content)) AS answers,
+                            CONCAT(
+                            '[',
+                                GROUP_CONCAT(
+                                    JSON_OBJECT('id', a.id, 'content', a.content)
+                                    order by a.position
+                                ),
+                            ']') answers,
                             b.is_request
                             FROM n_branch b
                             LEFT JOIN n_answers a ON  a.branch_id = b.id
@@ -462,6 +583,8 @@ def callback_inline(call):
                             'answers': json.loads(results2[0][3]),
                             'is_request': results2[0][4]
                         }
+                    # if current['answers_type'] == '0' :
+                    #     bot.edit_message_reply_markup(call.message.chat.id, message_id = call.message.message_id-1, reply_markup = '')
                     if item['answers_type'] == '0' :
                         markup = types.InlineKeyboardMarkup(row_width=2)
                         for answer in item['answers']:   
@@ -522,11 +645,14 @@ def callback_inline(call):
                         sql = "UPDATE n_request_content SET branch_id = '{}' WHERE `id` = {}".format(current['id'], results[0][0])
                         cursor.execute(sql)
                         db.commit()
-                    else :
-                        sql = "INSERT INTO n_request_content (`request_id`,`title`,`answer`, `branch_id`) VALUES ('{}','{}','{}','{}')".format(request['id'], current['is_request'], replaceTextButton(answer['content']),current['id'])
+                        sql = "UPDATE n_request_content SET documentolog_id = '{}' WHERE `id` = {}".format(answer['documentolog_id'], results[0][0])
                         cursor.execute(sql)
                         db.commit()
-        if item['is_request'] == 'undefined' :
+                    else :
+                        sql = "INSERT INTO n_request_content (`request_id`,`title`,`answer`, `branch_id`, `documentolog_id`) VALUES ('{}','{}','{}','{}','{}')".format(request['id'], current['is_request'], replaceTextButton(answer['content']),current['id'],answer['documentolog_id'])
+                        cursor.execute(sql)
+                        db.commit()
+        if item['is_request'] and item['is_request'] == 'undefined' :
             sql = "SELECT id FROM n_requests WHERE client_id = '{}' AND status = '0'".format(user['id'])
             cursor.execute(sql)
             results = cursor.fetchall()
@@ -550,4 +676,4 @@ def botSendMessage (id, message) :
     bot.send_message(id, replaceText(message), parse_mode='Markdown')
     return True
 # RUN
-bot.polling(none_stop=True)
+bot.polling()

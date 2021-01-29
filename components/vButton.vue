@@ -1,6 +1,7 @@
 <template>
   <button
     class="flex flex-row items-center py-3 px-4 rounded-5 text-white fill-current bg-cyan hover:text-dark border border-cyan transition duration-150 hover:border-d_blue hover:bg-white"
+    :disabled="disabled"
     @click="$emit('click', true)"
   >
     <svg
@@ -40,6 +41,10 @@ export default {
     plus: {
       type: Boolean,
       default: false
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     }
   }
 }
@@ -48,5 +53,10 @@ export default {
 <style lang="scss" scoped>
 button {
   height: max-content;
+  &:disabled {
+    background-color: rgba(226, 232, 240, 1);
+    border-color: rgba(226, 232, 240, 1);
+    color: #8e8e8e;
+  }
 }
 </style>

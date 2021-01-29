@@ -79,14 +79,33 @@
             class="flex flex-row justify-between items-center overflow-hidden"
             style="min-height: 2.125rem; max-height: 2.125rem;"
           >
-            <v-radio
-              v-if="!withOut"
-              class="w-1/2"
-              :title="answer.content"
-              :checked="branch.current === answer.id"
-              @change="$emit('change-current', answer.id)"
-            />
-            <span v-else v-html="answer.content"></span>
+            <div class="flex flex-row w-1-2 items-center truncate">
+              <div
+                v-if="branch.answers.length - 1"
+                class="arrows flex flex-col h-full pr-2"
+              >
+                <img
+                  v-if="j"
+                  class="first mb-1 cursor-pointer"
+                  src="/down.png"
+                  @click="$emit('change-position', { index: j, value: -1 })"
+                />
+                <img
+                  v-if="j !== branch.answers.length - 2"
+                  class="mt-1 cursor-pointer"
+                  src="/down.png"
+                  @click="$emit('change-position', { index: j, value: 1 })"
+                />
+              </div>
+              <v-radio
+                v-if="!withOut"
+                class="w-full"
+                :title="answer.content"
+                :checked="branch.current === answer.id"
+                @change="$emit('change-current', answer.id)"
+              />
+              <span v-else v-html="answer.content"></span>
+            </div>
             <div v-if="!withOut" class="flex flex-row">
               <pencil style="margin-left: 0" @click="$emit('open-answer', j)" />
               <delete
@@ -162,6 +181,16 @@ export default {
   }
   &:hover {
     box-shadow: inset 0 0 15px 0 #00000015, 0 0 15px 0 #00000015;
+  }
+}
+.arrows {
+  max-width: 19px;
+  min-width: 19px;
+  & > img:last-child {
+    transition: 0.3s;
+  }
+  & > .first {
+    transform: scale(-1, -1);
   }
 }
 </style>

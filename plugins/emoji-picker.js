@@ -11,3 +11,6 @@ Vue.component("Multiselect", Multiselect)
 import DatePick from "vue-date-pick"
 Vue.component("DatePick", DatePick)
 // import "vue-date-pick/dist/vueDatePick.css"
+
+import ClickOutside from "vue-click-outside"
+Vue.directive("ClickOutside", ClickOutside)

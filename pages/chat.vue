@@ -1,9 +1,11 @@
 <template>
-  <div class="pt-4 rounded-t-30 mt-4">
-    <div class="px-70px flex flex-col">
-      <h1 class="page-title text-cyan text-2xl font-bold">Активные диалоги</h1>
-      <div class="flex flex-row py-10">
-        <div class="flex flex-col pr-3">
+  <div class="sm:pt-4 rounded-t-30 sm:mt-4">
+    <div class="px-0 sm:px-70px flex flex-col">
+      <h1 class="hidden sm:flex page-title text-cyan text-2xl font-bold">
+        Активные диалоги
+      </h1>
+      <div class="flex flex-row sm:py-10">
+        <div class="hidden sm:flex flex-col pr-3">
           <template v-for="(list, i) in chats">
             <router-link
               :key="list.id"
@@ -52,10 +54,10 @@
             </router-link>
           </template>
         </div>
-        <div class="ml-4 w-3/4">
-          <div class="flex flex-col bg-white rounded-30">
+        <div class="sm:ml-4 w-full sm:w-3/4">
+          <div class="flex flex-col sm:bg-white sm:rounded-30">
             <div
-              class="flex flex-row px-12 py-6 justify-between border-b border-black border-opacity-10"
+              class="flex flex-row px-4 sm:px-12 bg-white sm:bg-transparent py-6 justify-between border-b border-black border-opacity-10"
             >
               <div v-if="chats.length" class="flex flex-col">
                 <h4 class="font-bold mb-1">{{ chats[current_chat].name }}</h4>
@@ -72,7 +74,35 @@
                   </span>
                 </div>
               </div>
-              <div class="flex flex-row mt-2">
+              <div
+                v-click-outside="() => (show_burger = false)"
+                class="flex sm:hidden relative"
+                @click="show_burger = !show_burger"
+              >
+                <div class="burger px-4 flex flex-col">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+                <div
+                  v-if="show_burger"
+                  class="burger-show bg-white absolute flex flex-col z-10"
+                >
+                  <button
+                    class="py-4 px-3 text-left truncate text-xs border-C4 border-b"
+                    @click="manager_popup = true"
+                  >
+                    Сменить ответственного
+                  </button>
+                  <button
+                    class="py-4 px-3 text-left truncate text-xs border-C4 border-b"
+                    @click="openChangeBranch()"
+                  >
+                    Переместить на этап
+                  </button>
+                </div>
+              </div>
+              <div class="hidden sm:flex flex-row mt-2">
                 <button
                   class="py-3 ml-6 px-4 truncate text-cyan border-cyan border rounded-5"
                   @click="manager_popup = true"
@@ -94,7 +124,7 @@
             </div>
             <div
               ref="chat"
-              class="chat overflow-x-hidden overflow-y-scroll px-8 flex flex-col"
+              class="chat overflow-x-hidden overflow-y-scroll px-4 sm:px-8 flex flex-col"
             >
               <template v-for="message in chat">
                 <div
@@ -105,7 +135,7 @@
                     'right flex-row-reverse': message.from !== 'client'
                   }"
                 >
-                  <div class="ava">
+                  <div class="ava hidden sm:flex">
                     <img v-if="message.from === 'client'" src="user.svg" />
                   </div>
                   <div
@@ -124,15 +154,16 @@
               </template>
             </div>
             <form
-              class="sender px-8 flex justify-end items-center relative flex relative"
+              class="sender sm:px-8 flex justify-end items-center relative flex relative"
               @submit.prevent="sendMessage()"
             >
-              <input
+              <textarea
                 v-model="form.message"
                 type="text"
-                class="w-full rounded-full border border-black
-              border-opacity-10 py-9 outline-none mt-4 p-70px"
-              />
+                placeholder="Введите сообщение ..."
+                class="w-full sm:rounded-full border border-black
+              border-opacity-10 outline-none mt-4 p-4"
+              ></textarea>
               <div class="absolute hidden"><img src="add_file.svg" /></div>
               <div class="absolute" @click="sendMessage()">
                 <img src="send.svg" />
@@ -169,6 +200,7 @@ export default {
   data() {
     return {
       load: true,
+      show_burger: false,
       current_chat: 0,
       current_page: 0,
       form: {
@@ -350,10 +382,21 @@ export default {
       }
       this.$axios
         .post("/sendMessage/123123123/", this.changeData(data))
-        .then(res => {
-          console.log(res)
-          this.form = { message: "", files: [] }
+        .then(() => {
+          let data = {
+            page: 0,
+            user_id: this.$route.query.user_id,
+            last: this.chat[this.chat.length - 1].id
+          }
+          this.$axios
+            .post("/n_messagesList/123123123/", this.changeData(data))
+            .then(res => {
+              res.data.forEach(x => {
+                this.chat.push(x)
+              })
+            })
         })
+      this.form = { message: "", files: [] }
     },
     changeData(data) {
       let formData = new FormData()
@@ -437,8 +480,10 @@ export default {
   height: 60vh;
 }
 .sender {
-  & > input {
+  & > textarea {
+    resize: none;
     padding-right: 9rem;
+    max-height: 5rem;
   }
   & > .absolute {
     cursor: pointer;
@@ -537,5 +582,68 @@ export default {
     right: 25px;
     bottom: 11px;
   }
+}
+@media (max-width: 639px) {
+  .hidden {
+    display: none;
+  }
+  .sender {
+    & > textarea {
+      padding-right: 3.75rem;
+    }
+    & > .absolute {
+      cursor: pointer;
+      margin-top: 1rem;
+      display: none;
+      right: 110px;
+      justify-content: center;
+      align-items: center;
+      & > img {
+        width: 60%;
+      }
+      &:last-child {
+        display: flex;
+        padding: 0;
+        max-width: 27px;
+        max-height: 27px;
+        min-width: 27px;
+        min-height: 27px;
+        right: 25px;
+        background: #008fa0;
+        border-radius: 50%;
+      }
+    }
+  }
+  .message-block {
+    &.left {
+      & .message {
+        margin-left: 0;
+        &:before {
+          display: none;
+        }
+      }
+    }
+  }
+}
+.burger {
+  & > div {
+    max-width: 6px;
+    max-height: 6px;
+    min-width: 6px;
+    min-height: 6px;
+    margin-top: 4px;
+    border-radius: 50%;
+    background-color: #c4c4c4;
+    & > :first-child {
+      margin-top: 0;
+    }
+  }
+}
+.burger-show {
+  bottom: 0;
+  right: 0;
+  transform: translateY(80%);
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 10px 0px 10px 10px;
 }
 </style>

@@ -27,6 +27,8 @@
       v-if="popup"
       :type="popup_type"
       :value="checkValue"
+      :if-document="!!current_answer"
+      :document="current_answer ? current_answer.documentolog_id : ''"
       @close="e => addAnswer('', e)"
     />
     <all-popup
@@ -78,6 +80,7 @@
                 :key="branch.id"
                 :branch="branch"
                 :i="i"
+                @change-position="e => changePosition(i, e)"
                 @change-is-request="e => (branch.is_request = e)"
                 @change-for-all="e => changeForAll(branch, e)"
                 @open-title="e => changeTitle(i)"
@@ -234,6 +237,13 @@ export default {
     this.getAllTemplates()
   },
   methods: {
+    changePosition(index, data) {
+      this.tree[index].answers[data.index] = this.tree[index].answers.splice(
+        data.index + data.value,
+        1,
+        this.tree[index].answers[data.index]
+      )[0]
+    },
     async saveAllBranches(type) {
       try {
         let show = false
@@ -245,6 +255,15 @@ export default {
           this.getAllTemplates()
         } else {
           this.load = true
+          if (
+            localStorage.getItem("delete_answers") &&
+            JSON.parse(localStorage.getItem("delete_answers")).length
+          )
+            for await (const id of JSON.parse(
+              localStorage.getItem("delete_answers")
+            ).map(e => this.deleteAnswer(e)))
+              if (show) console.log(id)
+          localStorage.setItem("delete_answers", JSON.stringify([]))
           for await (const branch of this.all_branches.map(e =>
             (e.id + "").indexOf("-") > -1 ? this.uploadBranch(e) : ""
           ))
@@ -254,8 +273,8 @@ export default {
           ))
             if (show) console.log(branch)
           for (const branch of this.all_branches)
-            for await (const answer of branch.answers.map(e =>
-              this.uploadAnswer(branch, e)
+            for await (const answer of branch.answers.map((e, i) =>
+              this.uploadAnswer(branch, e, i)
             ))
               if (show) console.log(answer)
           for await (const template of this.templates.map(e =>
@@ -304,7 +323,7 @@ export default {
         }
       })
     },
-    uploadAnswer(branch, answer) {
+    uploadAnswer(branch, answer, index) {
       if (answer && answer.id && answer.id !== "text") {
         let from = answer.to_branch
         if (branch.for_all) from = branch.for_all
@@ -318,7 +337,7 @@ export default {
                   branch.id
                 }/${this.splitingForContent(answer.content)}/${
                   answer.tag_id
-                }/${to_branch}/`
+                }/${to_branch}/${index}/${answer.documentolog_id || "null"}/`
               )
               .then(res => {
                 answer.id = res.data[0]
@@ -333,7 +352,7 @@ export default {
                   branch.id
                 }/${this.splitingForContent(answer.content)}/${
                   answer.tag_id
-                }/${to_branch}/`
+                }/${to_branch}/${index}/${answer.documentolog_id || "null"}/`
               )
               .then(() => resolve(true))
               .catch(() => reject(false))
@@ -380,6 +399,13 @@ export default {
         }
       })
     },
+    deleteAnswer(id) {
+      return new Promise(resolve => {
+        this.$axios.get(`/n_DeleteAnswer/123123123/${id}/`).then(res => {
+          resolve(res.status)
+        })
+      })
+    },
     splitingForContent(string) {
       if (typeof string === "string")
         return string
@@ -404,7 +430,9 @@ export default {
           !JSON.parse(localStorage.getItem("bot")).length)
       )
         this.$axios.get(`/n_getBranchList/123123132/`).then(res => {
+          localStorage.setItem("delete_answers", JSON.stringify([]))
           let all_branches = res.data.map(x => {
+            console.log(x.answers)
             let answers = JSON.parse(x.answers)
             answers.push({
               id: "text",
@@ -578,6 +606,7 @@ export default {
       this.current_in_tree = this.tree[branch_index]
       this.current_branch = this.tree[branch_index]
       this.current_answer = this.current_branch.answers[index]
+      console.log(this.current_answer)
     },
     changeType(type, i) {
       this.tree[i].current = undefined
@@ -589,10 +618,24 @@ export default {
     removeAnswer(index, branch) {
       if (branch.current === branch.answers[index].id)
         branch.current = undefined
-      if (branch.answers[index].id > 0)
-        this.$axios.get(
-          `/n_DeleteAnswer/123123123/${branch.answers[index].id}/`
+      if ((branch.answers[index].id + "").indexOf("-") === -1)
+        if (
+          localStorage.getItem("delete_answers") &&
+          JSON.parse(localStorage.getItem("delete_answers")).length
         )
+          localStorage.setItem(
+            "delete_answers",
+            JSON.stringify(
+              JSON.parse(localStorage.getItem("delete_answers")).push(
+                branch.answers[index].id
+              )
+            )
+          )
+        else
+          localStorage.setItem(
+            "delete_answers",
+            JSON.stringify([branch.answers[index].id])
+          )
       branch.answers.splice(index, 1)
     },
     addAnswer(branch, e) {
@@ -600,14 +643,15 @@ export default {
       if (branch) this.current_branch = branch
       if (!this.popup_type && e) {
         if (this.redact_template) {
-          this.redact_template.title = e[0]
+          this.redact_template.title = e.data[0]
         } else if (this.current_answer) {
-          this.current_answer.content = e[0]
+          this.current_answer.content = e.data[0]
+          this.current_answer.documentolog_id = e.documentolog_id
         } else {
-          this.current_in_tree.title = e[0]
+          this.current_in_tree.title = e.data[0]
         }
-      } else if (e) {
-        for (let x of e)
+      } else if (e && e.data) {
+        for (let x of e.data)
           this.current_branch.answers.splice(0, 0, {
             id:
               this.current_branch.answers.length > 1

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row w-full justify-end pr-24">
+  <div class="flex flex-col sm:flex-row w-full justify-end sm:pr-24">
     <div class="flex flex-row">
       <template v-for="i in 4">
         <div
@@ -7,7 +7,7 @@
           :key="i"
           class="number mr-2 flex justify-center items-center rounded-full cursor-pointer border border-black border-opacity-0 hover:border-opacity-10 text-black text-opacity-25"
           :class="{
-            'text-opacity-100 border-opacity-10': i + getCurrent - 2 === value
+            'text-opacity-100 border-opacity-10': i + getCurrent - 2 == value
           }"
           @click="$emit('input', i + getCurrent - 2)"
         >
@@ -19,7 +19,7 @@
         class="number mr-2 flex justify-center items-center rounded-full cursor-pointer border border-black border-opacity-0 hover:border-opacity-10 text-black text-opacity-25"
         :class="{
           'text-opacity-100 border-opacity-10':
-            5 + getCurrent - 2 === value && value !== max
+            5 + getCurrent - 2 == value && value != max
         }"
         @click="$emit('input', 5 + getCurrent - 2)"
       >
@@ -35,19 +35,21 @@
         {{ max }}
       </div>
     </div>
-    <input
-      v-model="inp_page"
-      v-mask="'###'"
-      type="text"
-      class="px-4 py-3 border rounded-5 border-black
-    border-opacity-10 ml-8"
-      placeholder="Введите номер ..."
-    />
-    <v-button
-      class="ml-5 justify-center"
-      title="Перейти"
-      @click="changeToInpRange()"
-    />
+    <div class="flex flex-row mt-4 sm:mt-0">
+      <input
+        v-model="inp_page"
+        v-mask="'###'"
+        type="text"
+        class="px-4 py-3 border rounded-5 border-black
+    border-opacity-10 sm:ml-8 w-full sm:w-auto"
+        placeholder="Введите номер ..."
+      />
+      <v-button
+        class="ml-5 justify-center"
+        title="Перейти"
+        @click="changeToInpRange()"
+      />
+    </div>
   </div>
 </template>
 
@@ -79,7 +81,7 @@ export default {
   },
   methods: {
     changeToInpRange() {
-      let result = this.inp_page
+      let result = parseInt(this.inp_page)
       if (result > this.max) result = this.max
       if (result < this.min) result = this.min
       this.$emit("input", result)

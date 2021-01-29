@@ -103,8 +103,15 @@
           :editor="message"
         />
       </div>
-      <div class="flex flex-row justify-start items-center mt-10">
+      <div class="flex flex-row justify-start items-center w-full mt-10">
         <v-button class="mr-6" title="Сохранить" @click="sendMessage()" />
+        <input
+          v-if="ifDocument"
+          v-model="documentolog_id"
+          placeholder="ID для поля документолога"
+          class="py-3 px-4 w-1/2 border border-black border-opacity-10 rounded-5 bg-C4 bg-opacity-25"
+          type="text"
+        />
         <v-radio
           v-if="type"
           class="mr-2"
@@ -119,6 +126,7 @@
           width="9"
           height="17"
           viewBox="0 0 9 17"
+          title="Каждый абзац это отдельный ответ"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
@@ -170,6 +178,14 @@ export default {
       type: Boolean,
       default: true
     },
+    ifDocument: {
+      type: Boolean,
+      default: false
+    },
+    document: {
+      type: [String, Number],
+      default: ""
+    },
     value: {
       type: String,
       default: `
@@ -181,7 +197,8 @@ export default {
   data() {
     return {
       message: null,
-      list: false
+      list: false,
+      documentolog_id: this.document
     }
   },
   computed: {
@@ -257,7 +274,7 @@ export default {
           }
         }
       } else arr.push(this.message.getHTML())
-      this.$emit("close", arr)
+      this.$emit("close", { data: arr, documentolog_id: this.documentolog_id })
     },
     selectEmoji(emoji) {
       const transaction = this.message.state.tr.insertText(emoji)
